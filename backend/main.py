@@ -48,6 +48,12 @@ def kis_token():
     return {"issued": True, "expires_at": token["expires_at"]}
 
 
+@app.get("/kis/token/status")
+def kis_token_status():
+    """캐시된 토큰의 존재 여부/만료 시각/남은 시간 (신규 발급 없음)."""
+    return kis.token_status()
+
+
 @app.get("/kis/stock/price")
 def kis_stock_price(code: str = Query("005930", pattern=r"^\d{6}$", description="종목코드 6자리")):
     out = kis.inquire_price(code)

@@ -12,7 +12,11 @@ BASE_URL = "https://openapi.koreainvestment.com:9443"
 # (uvicorn --reload 재시작에도 유지되도록 컨테이너 /tmp 사용, 호스트 폴더에는 남기지 않음)
 TOKEN_CACHE = Path("/tmp/kis_token.json")
 
+# 만료 REFRESH_MARGIN 전까지는 캐시 토큰을 그대로 사용하고, 그 이후에만 재발급한다.
+REFRESH_MARGIN = timedelta(minutes=5)
+
 _lock = threading.Lock()
+_memory: dict | None = None  # 프로세스 내 1차 캐시 (파일 읽기 생략)
 
 
 class KISError(Exception):
@@ -30,15 +34,50 @@ def _app_secret() -> str:
     return os.environ["KIS_APP_SECRET"]
 
 
-def _load_cached_token() -> dict | None:
+def _is_valid(data: dict | None) -> bool:
+    """만료 5분 전 이전이면 재사용 가능."""
+    if not data:
+        return False
+    try:
+        return datetime.fromisoformat(data["expires_at"]) - REFRESH_MARGIN > datetime.now()
+    except (KeyError, ValueError, TypeError):
+        return False
+
+
+def _read_cache() -> dict | None:
+    """메모리 -> 파일 순으로 캐시를 읽는다 (만료 여부와 무관, 손상 시 None)."""
+    global _memory
+    if _memory:
+        return _memory
     try:
         data = json.loads(TOKEN_CACHE.read_text())
-    except (FileNotFoundError, json.JSONDecodeError):
+    except (OSError, json.JSONDecodeError):
         return None
-    # 만료 5분 전부터는 재발급
-    if datetime.fromisoformat(data["expires_at"]) - timedelta(minutes=5) <= datetime.now():
+    if not isinstance(data, dict) or "access_token" not in data or "expires_at" not in data:
         return None
+    _memory = data
     return data
+
+
+def _load_cached_token() -> dict | None:
+    data = _read_cache()
+    return data if _is_valid(data) else None
+
+
+def _save_cache(data: dict) -> None:
+    global _memory
+    tmp = TOKEN_CACHE.with_suffix(".tmp")
+    tmp.write_text(json.dumps(data))
+    tmp.chmod(0o600)
+    tmp.replace(TOKEN_CACHE)  # 원자적 교체
+    _memory = data
+
+
+def clear_cache() -> None:
+    global _memory
+    with _lock:
+        _memory = None
+        TOKEN_CACHE.unlink(missing_ok=True)
 
 
 def issue_token() -> dict:
@@ -55,14 +94,31 @@ def issue_token() -> dict:
         "access_token": body["access_token"],
         "expires_at": (datetime.now() + timedelta(seconds=int(body["expires_in"]))).isoformat(),
     }
-    TOKEN_CACHE.write_text(json.dumps(data))
-    TOKEN_CACHE.chmod(0o600)
+    _save_cache(data)
     return data
 
 
 def get_token() -> dict:
     with _lock:
         return _load_cached_token() or issue_token()
+
+
+def token_status() -> dict:
+    """캐시 상태만 조회한다. 발급 요청은 보내지 않고 토큰 값도 노출하지 않는다."""
+    with _lock:
+        data = _read_cache()
+    if not data:
+        return {"cached": False, "valid": False, "expires_at": None, "remaining_seconds": None, "remaining": None}
+    expires_at = datetime.fromisoformat(data["expires_at"])
+    remaining = max(0, int((expires_at - datetime.now()).total_seconds()))
+    return {
+        "cached": True,
+        "valid": _is_valid(data),  # False 면 다음 호출 때 재발급됨
+        "expires_at": data["expires_at"],
+        "refresh_at": (expires_at - REFRESH_MARGIN).isoformat(),
+        "remaining_seconds": remaining,
+        "remaining": str(timedelta(seconds=remaining)),
+    }
 
 
 def _get(path: str, tr_id: str, params: dict) -> dict:
