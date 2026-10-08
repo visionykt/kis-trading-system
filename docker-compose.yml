@@ -32,6 +32,18 @@ services:
       timescaledb:
         condition: service_healthy
 
+  adminer:
+    image: adminer:latest
+    container_name: kis-adminer
+    restart: unless-stopped
+    environment:
+      ADMINER_DEFAULT_SERVER: timescaledb
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+
   frontend:
     image: nginx:alpine
     container_name: kis-frontend
