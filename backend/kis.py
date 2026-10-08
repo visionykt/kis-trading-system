@@ -42,6 +42,15 @@ class KISError(Exception):
         self.body = body
 
 
+class KISOrderRejected(KISError):
+    """KIS 가 요청은 받았지만 비즈니스 사유(잔고부족/장마감/주문불가 등)로 거부한 경우."""
+
+    def __init__(self, body):
+        super().__init__(200, body)
+        self.msg_cd = body.get("msg_cd")
+        self.msg = body.get("msg1")
+
+
 def _app_key() -> str:
     return os.environ["KIS_APP_KEY"]
 
@@ -137,8 +146,8 @@ def token_status() -> dict:
     }
 
 
-def _get(path: str, tr_id: str, params: dict) -> dict:
-    headers = {
+def _headers(tr_id: str) -> dict:
+    return {
         "content-type": "application/json; charset=utf-8",
         "authorization": f"Bearer {get_token()['access_token']}",
         "appkey": _app_key(),
@@ -146,10 +155,28 @@ def _get(path: str, tr_id: str, params: dict) -> dict:
         "tr_id": tr_id,
         "custtype": "P",
     }
-    resp = requests.get(f"{base_url()}{path}", headers=headers, params=params, timeout=10)
+
+
+def _get(path: str, tr_id: str, params: dict) -> dict:
+    resp = requests.get(f"{base_url()}{path}", headers=_headers(tr_id), params=params, timeout=10)
     body = resp.json()
     if resp.status_code != 200 or body.get("rt_cd") != "0":
         raise KISError(resp.status_code, body)
+    return body
+
+
+def _post(path: str, tr_id: str, payload: dict) -> dict:
+    """주문 같은 비멱등 요청용. 절대 자동 재시도하지 않는다."""
+    try:
+        resp = requests.post(f"{base_url()}{path}", headers=_headers(tr_id), json=payload, timeout=10)
+        body = resp.json()
+    except (requests.RequestException, ValueError) as e:
+        # 요청이 도달했는지 알 수 없으므로 재전송 대신 주문내역 확인을 안내한다.
+        raise KISError(504, {"msg1": f"no valid response from KIS ({e!r}); order status unknown, check order history"})
+    if resp.status_code != 200:
+        raise KISError(resp.status_code, body)
+    if body.get("rt_cd") != "0":
+        raise KISOrderRejected(body)
     return body
 
 
@@ -240,3 +267,46 @@ def get_balance() -> dict:
     except (KeyError, ValueError, TypeError, AttributeError) as e:
         raise KISError(200, {"msg1": f"unexpected balance response: {e!r}"})
     return {"summary": summary, "holdings": holdings}
+
+
+# 매수/매도 tr_id: (실전, 모의투자)
+ORDER_TR_IDS = {"buy": ("TTTC0802U", "VTTC0802U"), "sell": ("TTTC0801U", "VTTC0801U")}
+ORDER_DVSN = {"limit": "00", "market": "01"}
+
+
+def order_tr_id(side: str) -> str:
+    return ORDER_TR_IDS[side][1 if is_mock() else 0]
+
+
+def place_order(symbol: str, side: str, order_type: str, quantity: int, price: int | None = None) -> dict:
+    """국내주식 현금 주문 (side: buy|sell, order_type: limit|market). 시장가는 단가 0."""
+    if side not in ORDER_TR_IDS or order_type not in ORDER_DVSN:
+        raise ValueError(f"invalid side/order_type: {side}/{order_type}")
+    if quantity <= 0 or (order_type == "limit" and (price is None or price <= 0)):
+        raise ValueError("quantity must be > 0 and limit orders need price > 0")
+    body = _post(
+        "/uapi/domestic-stock/v1/trading/order-cash",
+        order_tr_id(side),
+        {
+            "CANO": os.environ["KIS_CANO"],
+            "ACNT_PRDT_CD": os.environ["KIS_ACNT_PRDT_CD"],
+            "PDNO": symbol,
+            "ORD_DVSN": ORDER_DVSN[order_type],
+            "ORD_QTY": str(quantity),
+            "ORD_UNPR": str(price) if order_type == "limit" else "0",
+        },
+    )
+    out = body.get("output") or {}
+    if not out.get("ODNO"):
+        raise KISError(200, {"msg1": "order response missing ODNO", **body})
+    return {
+        "order_no": out["ODNO"],
+        "krx_org_no": out.get("KRX_FWDG_ORD_ORGNO"),
+        "order_time": out.get("ORD_TMD"),
+        "message": body.get("msg1"),
+        "symbol": symbol,
+        "side": side,
+        "order_type": order_type,
+        "quantity": quantity,
+        "price": price if order_type == "limit" else None,
+    }
