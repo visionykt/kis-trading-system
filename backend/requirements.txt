@@ -3,3 +3,5 @@ uvicorn[standard]
 psycopg[binary]
 requests
 pandas
+bcrypt
+PyJWT

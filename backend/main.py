@@ -1,13 +1,24 @@
 import os
+from contextlib import asynccontextmanager
 
 import psycopg
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+import auth
+import db
 import kis
 
-app = FastAPI(title="KIS Data Mining API")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    db.init_db()
+    yield
+
+
+app = FastAPI(title="KIS Data Mining API", lifespan=lifespan)
+app.include_router(auth.router)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 
