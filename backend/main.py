@@ -3,7 +3,7 @@ import re
 from contextlib import asynccontextmanager
 
 import psycopg
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -67,6 +67,7 @@ def kis_stock_price_legacy(code: str = Query("005930", pattern=r"^\d{6}$")):
     return kis.get_stock_price(code)
 
 
-@app.get("/kis/account/balance")
-def kis_account_balance():
-    return kis.inquire_balance()
+@app.get("/kis/balance")
+def kis_balance(user: dict = Depends(auth.current_user)):
+    """환경변수(KIS_CANO/KIS_ACNT_PRDT_CD)에 설정된 계좌의 정규화된 잔고. 로그인 필요."""
+    return kis.get_balance()
