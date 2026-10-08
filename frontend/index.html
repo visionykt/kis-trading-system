@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><title>KIS Data Mining</title></head>
+<body>
+  <h1>KIS Data Mining</h1>
+  <pre id="status">backend 확인 중...</pre>
+  <script>
+    fetch("http://" + location.hostname + ":8000/health")
+      .then(r => r.json())
+      .then(d => document.getElementById("status").textContent = JSON.stringify(d, null, 2))
+      .catch(e => document.getElementById("status").textContent = "backend 연결 실패: " + e);
+  </script>
+</body>
+</html>

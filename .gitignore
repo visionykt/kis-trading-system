@@ -1,0 +1,51 @@
+# ===== 홈 디렉터리 보호: 기본적으로 모두 무시하고 프로젝트만 허용 =====
+/*
+!/.gitignore
+!/docker-compose.yml
+!/backend/
+!/frontend/
+!/.env.example
+
+# ===== 민감 정보 (어디서든 무시) =====
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+id_rsa*
+secrets.*
+credentials.*
+*.secret
+.npmrc
+token*.json
+*token*.dat
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# ===== Node =====
+node_modules/
+dist/
+build/
+npm-debug.log*
+
+# ===== 로그 / 기타 =====
+*.log
+logs/
+*.sqlite3
+*.db
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
