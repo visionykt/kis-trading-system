@@ -138,13 +138,31 @@ def _get(path: str, tr_id: str, params: dict) -> dict:
 
 
 def inquire_price(code: str) -> dict:
-    """국내주식 현재가 시세 (tr_id FHKST01010100)."""
+    """국내주식 현재가 시세 (tr_id FHKST01010100) 원본 output."""
     body = _get(
         "/uapi/domestic-stock/v1/quotations/inquire-price",
         "FHKST01010100",
         {"FID_COND_MRKT_DIV_CODE": "J", "FID_INPUT_ISCD": code},
     )
     return body["output"]
+
+
+def get_stock_price(code: str) -> dict:
+    """현재가 시세를 핵심 항목만 정규화해서 반환한다."""
+    out = inquire_price(code)
+    try:
+        return {
+            "code": code,
+            "price": int(out["stck_prpr"]),
+            "change": int(out["prdy_vrss"]),
+            "change_rate": float(out["prdy_ctrt"]),
+            "volume": int(out["acml_vol"]),
+            "open": int(out["stck_oprc"]),
+            "high": int(out["stck_hgpr"]),
+            "low": int(out["stck_lwpr"]),
+        }
+    except (KeyError, ValueError, TypeError) as e:
+        raise KISError(200, {"msg1": f"unexpected price response: {e!r}", "output": out})
 
 
 def inquire_balance() -> dict:

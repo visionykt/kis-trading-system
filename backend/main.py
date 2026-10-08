@@ -1,8 +1,9 @@
 import os
+import re
 from contextlib import asynccontextmanager
 
 import psycopg
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -54,20 +55,16 @@ def kis_token_status():
     return kis.token_status()
 
 
-@app.get("/kis/stock/price")
-def kis_stock_price(code: str = Query("005930", pattern=r"^\d{6}$", description="종목코드 6자리")):
-    out = kis.inquire_price(code)
-    return {
-        "code": code,
-        "price": int(out["stck_prpr"]),
-        "change": int(out["prdy_vrss"]),
-        "change_rate": float(out["prdy_ctrt"]),
-        "open": int(out["stck_oprc"]),
-        "high": int(out["stck_hgpr"]),
-        "low": int(out["stck_lwpr"]),
-        "volume": int(out["acml_vol"]),
-        "raw": out,
-    }
+@app.get("/kis/stock/{symbol}/price")
+def kis_stock_price(symbol: str):
+    if not re.fullmatch(r"\d{6}", symbol):
+        raise HTTPException(status_code=422, detail="symbol must be a 6-digit stock code (e.g. 005930)")
+    return kis.get_stock_price(symbol)
+
+
+@app.get("/kis/stock/price", include_in_schema=False)
+def kis_stock_price_legacy(code: str = Query("005930", pattern=r"^\d{6}$")):
+    return kis.get_stock_price(code)
 
 
 @app.get("/kis/account/balance")
