@@ -2,6 +2,7 @@
 import json
 import os
 import threading
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -157,12 +158,20 @@ def _headers(tr_id: str) -> dict:
     }
 
 
+RATE_LIMIT_MSG_CD = "EGW00201"  # 초당 거래건수 초과
+RATE_LIMIT_RETRIES = 5
+
+
 def _get(path: str, tr_id: str, params: dict) -> dict:
-    resp = requests.get(f"{base_url()}{path}", headers=_headers(tr_id), params=params, timeout=10)
-    body = resp.json()
-    if resp.status_code != 200 or body.get("rt_cd") != "0":
-        raise KISError(resp.status_code, body)
-    return body
+    """조회(멱등) 요청. 초당 호출 제한에 걸리면 지수 백오프로 재시도한다."""
+    for attempt in range(RATE_LIMIT_RETRIES + 1):
+        resp = requests.get(f"{base_url()}{path}", headers=_headers(tr_id), params=params, timeout=10)
+        body = resp.json()
+        if resp.status_code == 200 and body.get("rt_cd") == "0":
+            return body
+        if body.get("msg_cd") != RATE_LIMIT_MSG_CD or attempt == RATE_LIMIT_RETRIES:
+            raise KISError(resp.status_code, body)
+        time.sleep(0.5 * 2**attempt)
 
 
 def _post(path: str, tr_id: str, payload: dict) -> dict:
@@ -310,3 +319,59 @@ def place_order(symbol: str, side: str, order_type: str, quantity: int, price: i
         "quantity": quantity,
         "price": price if order_type == "limit" else None,
     }
+
+
+DAILY_CHART_MAX_ROWS = 100  # FHKST03010100 은 호출 1회당 최대 100건
+
+
+def inquire_daily_chart(code: str, start: str, end: str, period: str = "D", adjusted: bool = True) -> list[dict]:
+    """국내주식 기간별 시세 (tr_id FHKST03010100) 원본 output2 (최신 -> 과거 순).
+
+    FID_ORG_ADJ_PRC="0" 으로 수정주가를 받는다. 원주가("1")를 쓰면 액면분할일에 가짜 폭락이 생긴다.
+    adjusted=False 는 그 왜곡을 확인하는 검증용으로만 쓴다.
+    """
+    body = _get(
+        "/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice",
+        "FHKST03010100",
+        {
+            "FID_COND_MRKT_DIV_CODE": "J",
+            "FID_INPUT_ISCD": code,
+            "FID_INPUT_DATE_1": start,
+            "FID_INPUT_DATE_2": end,
+            "FID_PERIOD_DIV_CODE": period,
+            "FID_ORG_ADJ_PRC": "0" if adjusted else "1",
+        },
+    )
+    # 데이터가 없는 구간이면 빈 dict 가 섞여 온다
+    return [r for r in body.get("output2") or [] if r.get("stck_bsop_date")]
+
+
+def get_daily_candles(code: str, start: str, end: str, pause: float | None = None) -> list[dict]:
+    """start~end(YYYYMMDD) 일봉을 100건 단위로 끝 날짜를 당겨가며 모두 받아 날짜 오름차순으로 반환한다."""
+    if pause is None:
+        pause = 0.6 if is_mock() else 0.06  # 초당 호출 제한(실전 20건/모의 2건) 회피
+    rows: dict[str, dict] = {}
+    cursor = end
+    while cursor >= start:
+        page = inquire_daily_chart(code, start, cursor)
+        if not page:
+            break
+        for r in page:
+            try:
+                rows[r["stck_bsop_date"]] = {
+                    "symbol": code,
+                    "ts": datetime.strptime(r["stck_bsop_date"], "%Y%m%d").date(),
+                    "open": float(r["stck_oprc"]),
+                    "high": float(r["stck_hgpr"]),
+                    "low": float(r["stck_lwpr"]),
+                    "close": float(r["stck_clpr"]),
+                    "volume": _num(r["acml_vol"]),
+                }
+            except (KeyError, ValueError, TypeError) as e:
+                raise KISError(200, {"msg1": f"unexpected daily chart row: {e!r}", "row": r})
+        oldest = min(r["stck_bsop_date"] for r in page)
+        if len(page) < DAILY_CHART_MAX_ROWS:
+            break
+        cursor = (datetime.strptime(oldest, "%Y%m%d") - timedelta(days=1)).strftime("%Y%m%d")
+        time.sleep(pause)
+    return [rows[k] for k in sorted(rows)]

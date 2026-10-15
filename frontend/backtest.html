@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 6 Backtest</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f4f4f1; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #8a8984; --line: #e6e5e0;
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --base: #52514e;
+    --q1: #86b6ef; --q2: #3987e5; --q3: #256abf; --q4: #184f95; --q5: #0d366b; --pos: #0ca30c; --neg: #d03b3b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111110; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #8f8e86; --line: #383835;
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --base: #a3a29b;
+      --q1: #184f95; --q2: #256abf; --q3: #3987e5; --q4: #6da7ec; --q5: #9ec5f4; --pos: #3dbb3d; --neg: #e66767;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 system-ui, "Malgun Gothic", sans-serif; }
+  main { max-width: 1180px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--ink-2); margin: 0 0 20px; }
+  nav { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+  nav button { border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 7px 14px;
+               border-radius: 8px; cursor: pointer; font: inherit; }
+  nav button[aria-selected="true"] { border-color: var(--ink); font-weight: 600; }
+  section { display: none; } section.on { display: block; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+  .card h2 { font-size: 15px; margin: 0 0 10px; }
+  .note { color: var(--ink-2); font-size: 13px; margin: 6px 0 0; }
+  .chart { position: relative; height: 380px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .tile .k { color: var(--ink-2); font-size: 12px; display: flex; align-items: center; gap: 6px; }
+  .tile .v { font-size: 24px; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .tile .d { color: var(--muted); font-size: 12px; }
+  .sw { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: none; }
+  .scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: 13px; }
+  th, td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+  th { color: var(--ink-2); font-weight: 600; cursor: default; }
+  th.sort { cursor: pointer; } th.sort:hover { color: var(--ink); }
+  td:first-child, th:first-child, td.l, th.l { text-align: left; }
+  .pos { color: var(--pos); } .neg { color: var(--neg); }
+  .ok { color: var(--pos); font-weight: 600; } .fail { color: var(--neg); font-weight: 600; }
+  .err { color: var(--neg); }
+  label.sel { display: inline-flex; gap: 6px; align-items: center; color: var(--ink-2); font-size: 13px; margin-bottom: 8px; }
+  select { font: inherit; padding: 3px 6px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; }
+  .picks { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px; }
+  .picks div { font-size: 13px; } .picks b { display: flex; gap: 6px; align-items: center; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Week 6 · 낮 vs 밤(종가 배팅) 백테스트</h1>
+  <p class="sub"><a href="index.html" style="color:inherit">← 홈</a> · KIS 수정주가 일봉(FHKST03010100, FID_ORG_ADJ_PRC="0") · 2020-01 ~ · 수수료 표기가 없으면 제외 기준</p>
+  <nav role="tablist">
+    <button role="tab" data-tab="m1" aria-selected="true">MISSION 01 · 삼성전자</button>
+    <button role="tab" data-tab="m2" aria-selected="false">MISSION 02 · KOSPI 100</button>
+    <button role="tab" data-tab="m3" aria-selected="false">MISSION 03 · Top-5 선택</button>
+  </nav>
+
+  <section id="m1" class="on">
+    <div class="tiles" id="m1-tiles"></div>
+    <div class="card"><h2>누적수익률 — 단순보유 vs 낮(장중) vs 밤(종배)</h2><div class="chart"><canvas id="m1-chart"></canvas></div></div>
+    <div class="card scroll"><h2>성과표</h2><table id="m1-table"></table>
+      <p class="note" id="m1-note"></p></div>
+  </section>
+
+  <section id="m2">
+    <div class="tiles" id="m2-tiles"></div>
+    <div class="card"><h2>KOSPI 100 동일가중 누적수익률</h2><div class="chart"><canvas id="m2-chart"></canvas></div></div>
+    <div class="card scroll"><h2>수수료 민감도 — 동일가중 종배, 매일 왕복비용 차감</h2><table id="m2-costs"></table></div>
+    <div class="card scroll"><h2>종목별 낮 vs 밤 성과표 <span class="note">(열 이름을 누르면 정렬)</span></h2><table id="m2-table"></table></div>
+    <div class="card"><h2>수정주가 점검</h2><div id="m2-adj"></div></div>
+  </section>
+
+  <section id="m3">
+    <div class="card">
+      <h2>Top-5 종배 전략 vs KOSPI 100 동일가중 (로그 스케일)</h2>
+      <label class="sel">왕복비용 <select id="m3-cost"></select></label>
+      <div class="chart"><canvas id="m3-chart"></canvas></div>
+    </div>
+    <div class="card scroll"><h2>리더보드</h2><table id="m3-table"></table><p class="note" id="m3-note"></p></div>
+    <div class="card scroll"><h2>함정 01 · 미래참조 점검</h2><table id="m3-look"></table><p class="note" id="m3-look-note"></p></div>
+    <div class="card"><h2 id="m3-picks-h">오늘 밤 종배 후보</h2><div class="picks" id="m3-picks"></div></div>
+  </section>
+</main>
+<script>
+const API = location.protocol + "//" + location.hostname + ":8000";
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const pct = (v, d = 1) => v == null ? "-" : (v >= 0 ? "+" : "") + (v * 100).toLocaleString("ko-KR", {maximumFractionDigits: d, minimumFractionDigits: d}) + "%";
+const sign = v => v == null ? "" : v > 0 ? "pos" : v < 0 ? "neg" : "";
+const num = (v, d = 2) => v == null ? "-" : v.toFixed(d);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"})[c]);
+const charts = {};
+
+function show(tab) {
+  document.querySelectorAll("nav button").forEach(x => x.setAttribute("aria-selected", x.dataset.tab === tab));
+  document.querySelectorAll("section").forEach(s => s.classList.toggle("on", s.id === tab));
+  load(tab);
+}
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => { history.replaceState(null, "", "#" + b.dataset.tab); show(b.dataset.tab); });
+
+async function get(path) {
+  const r = await fetch(API + path);
+  const body = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(body.detail || body.error || r.status);
+  return body;
+}
+
+function lineChart(id, labels, series, {log = false} = {}) {
+  charts[id]?.destroy();
+  const ink2 = css("--ink-2"), line = css("--line");
+  charts[id] = new Chart(document.getElementById(id), {
+    type: "line",
+    data: {labels, datasets: series.map(s => ({
+      label: s.label, data: log ? s.y : s.y.map(v => (v - 1) * 100), borderColor: s.color, backgroundColor: s.color,
+      borderWidth: 2, borderDash: s.dash ? [6, 4] : [], pointRadius: 0, pointHoverRadius: 4, tension: 0,
+    }))},
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      interaction: {mode: "index", intersect: false},
+      plugins: {
+        legend: {position: "top", align: "start", labels: {color: ink2, boxWidth: 12, boxHeight: 2}},
+        tooltip: {callbacks: {label: c => {
+          const v = log ? (c.parsed.y - 1) * 100 : c.parsed.y;
+          return ` ${c.dataset.label}: ${v >= 0 ? "+" : ""}${v.toLocaleString("ko-KR", {maximumFractionDigits: 1})}%`;
+        }}},
+      },
+      scales: {
+        x: {ticks: {color: ink2, maxTicksLimit: 8, maxRotation: 0}, grid: {display: false}},
+        y: {type: log ? "logarithmic" : "linear", grid: {color: line}, border: {display: false},
+            ticks: {color: ink2, callback: v => {
+              const p = log ? (v - 1) * 100 : v;
+              if (log && ![1, 2, 5].includes(Number(v.toExponential().split("e")[0]))) return "";
+              return (p >= 0 ? "+" : "") + p.toLocaleString("ko-KR", {maximumFractionDigits: 0}) + "%";
+            }}},
+      },
+    },
+  });
+}
+
+function table(el, cols, rows, sortable = false) {
+  const t = document.getElementById(el);
+  let key = null, asc = false;
+  const render = () => {
+    const rs = key ? [...rows].sort((a, b) => ((a[key] ?? -Infinity) > (b[key] ?? -Infinity) ? 1 : -1) * (asc ? 1 : -1)) : rows;
+    t.innerHTML = "<thead><tr>" + cols.map(c => `<th class="${c.l ? "l " : ""}${sortable ? "sort" : ""}" data-k="${c.k}">${c.h}${key === c.k ? (asc ? " ▲" : " ▼") : ""}</th>`).join("") +
+      "</tr></thead><tbody>" + rs.map(r => "<tr>" + cols.map(c => {
+        const v = r[c.k], f = c.f ? c.f(v, r) : esc(v);
+        return `<td class="${c.l ? "l " : ""}${c.pct ? sign(v) : ""}">${f}</td>`;
+      }).join("") + "</tr>").join("") + "</tbody>";
+    if (sortable) t.querySelectorAll("th").forEach(th => th.onclick = () => {
+      asc = key === th.dataset.k ? !asc : false; key = th.dataset.k; render();
+    });
+  };
+  render();
+}
+
+const P = (k, h) => ({k, h, f: v => pct(v), pct: true});
+const swatch = c => `<span class="sw" style="background:${c}"></span>`;
+const loaded = {};
+
+async function load(tab) {
+  if (loaded[tab]) return;
+  loaded[tab] = true;
+  try { await ({m1, m2, m3})[tab](); }
+  catch (e) { loaded[tab] = false; document.getElementById(tab).insertAdjacentHTML("afterbegin", `<p class="err card">불러오기 실패: ${esc(e.message)}</p>`); }
+}
+
+async function m1() {
+  const d = await get("/backtest/005930/day-night?start=20200101");
+  const S = [["hold", "단순보유", "--s1", true], ["day", "낮(장중)", "--s2"], ["night", "밤(종배)", "--s3"]];
+  document.getElementById("m1-tiles").innerHTML = S.map(([k, n, c]) => {
+    const m = d.strategies[k];
+    return `<div class="tile"><div class="k">${swatch(css(c))}${n}</div><div class="v">${pct(m.cumulative_return)}</div>
+      <div class="d">승률 ${pct(m.win_rate).replace("+", "")} · MDD ${pct(m.mdd)}</div></div>`;
+  }).join("");
+  lineChart("m1-chart", d.curve.map(r => r.ts), S.map(([k, n, c, dash]) => ({label: n, y: d.curve.map(r => r["cum_" + k]), color: css(c), dash})));
+  table("m1-table", [{k: "name", h: "전략", l: true}, P("cumulative_return", "누적수익률"), P("cagr", "CAGR"),
+    {k: "win_rate", h: "승률", f: v => (v * 100).toFixed(1) + "%"}, P("mdd", "MDD"), {k: "sharpe", h: "Sharpe", f: v => num(v)}, {k: "days", h: "거래일"}],
+    S.map(([k, n]) => ({name: n, ...d.strategies[k]})));
+  document.getElementById("m1-note").textContent =
+    `${d.period.start} ~ ${d.period.end} · 검증 (1+밤)×(1+낮) = 단순보유, 최대 오차 ${d.identity_max_abs_error.toExponential(1)}`;
+}
+
+async function m2() {
+  const d = await get("/backtest/universe");
+  const S = [["hold", "단순보유", "--s1", true], ["day", "낮(장중)", "--s2"], ["night", "밤(종배)", "--s3"]];
+  document.getElementById("m2-tiles").innerHTML = S.map(([k, n, c]) => {
+    const m = d.equal_weight[k];
+    return `<div class="tile"><div class="k">${swatch(css(c))}${n} · 동일가중</div><div class="v">${pct(m.cumulative_return)}</div>
+      <div class="d">승률 ${pct(m.win_rate).replace("+", "")} · MDD ${pct(m.mdd)}</div></div>`;
+  }).join("") + `<div class="tile"><div class="k">밤 &gt; 낮 종목 수</div><div class="v">${d.night_beats_day} / ${d.symbols}</div>
+      <div class="d">${d.period.start} ~ ${d.period.end}</div></div>`;
+  lineChart("m2-chart", d.curve.map(r => r.ts), S.map(([k, n, c, dash]) => ({label: n, y: d.curve.map(r => r["cum_" + k]), color: css(c), dash})), {log: true});
+  table("m2-costs", [{k: "cost", h: "왕복비용", l: true, f: v => (v * 100).toFixed(2) + "%"}, P("cumulative_return", "누적수익률"), P("cagr", "CAGR"),
+    {k: "win_rate", h: "승률", f: v => (v * 100).toFixed(1) + "%"}, P("mdd", "MDD"), {k: "sharpe", h: "Sharpe", f: v => num(v)}], d.equal_weight_night_costs);
+  table("m2-table", [{k: "symbol", h: "코드", l: true}, {k: "name", h: "종목", l: true}, {k: "sector", h: "섹터", l: true},
+    {k: "night_win_rate", h: "밤 승률", f: v => (v * 100).toFixed(1) + "%"}, P("night_cumulative_return", "밤 누적"), P("night_mdd", "밤 MDD"),
+    {k: "day_win_rate", h: "낮 승률", f: v => (v * 100).toFixed(1) + "%"}, P("day_cumulative_return", "낮 누적"), P("hold_cumulative_return", "보유 누적"),
+    {k: "night_sharpe", h: "밤 Sharpe", f: v => num(v)}, {k: "days", h: "거래일"}], d.table, true);
+  const a = d.adjusted_check;
+  document.getElementById("m2-adj").innerHTML =
+    `<p>밤 수익률이 ${pct(a.threshold, 0)} 미만인 날: <b class="${a.suspicious_nights ? "fail" : "ok"}">${a.suspicious_nights}건</b> (가격제한폭 ±30% 초과는 원주가 착시 신호)</p>
+     <p class="note">가장 큰 밤 하락: ${a.worst_nights.map(w => `${esc(w.symbol)} ${w.ts} ${pct(w.night)}`).join(" · ")}</p>`;
+}
+
+async function m3() {
+  const d = await get("/backtest/top5");
+  const keys = ["KOSPI100_EW", ...Object.keys(d.strategies)];
+  const color = k => k === "KOSPI100_EW" ? css("--base") : css("--s" + (keys.indexOf(k)));
+  const name = k => d.board.find(b => b.key === k).name;
+  const sel = document.getElementById("m3-cost");
+  sel.innerHTML = d.costs.map(c => `<option value="${c}">${(c * 100).toFixed(2)}%</option>`).join("");
+  const labels = d.curve.map(r => r.ts);
+  // 서버 곡선은 비용 0 누적배수. 비용 c 는 포지션 보유일마다 차감 (EW 는 매일 보유)
+  const daily = k => d.curve.map((r, i) => i === 0 ? r[k] - 1 : r[k] / d.curve[i - 1][k] - 1);
+  const held = (k, i) => k === "KOSPI100_EW" || d.curve[i]["inv_" + k] === 1;
+  const draw = c => lineChart("m3-chart", labels, keys.map(k => {
+    let eq = 1; const r = daily(k);
+    return {label: name(k), color: color(k), dash: k === "KOSPI100_EW",
+            y: r.map((x, i) => (eq *= 1 + x - (held(k, i) ? c : 0)))};
+  }), {log: true});
+  sel.onchange = () => draw(Number(sel.value));
+  draw(0);
+  const net = (b, c) => b.net.find(n => Math.abs(n.cost - c) < 1e-12);
+  table("m3-table", [{k: "name", h: "전략", l: true, f: (v, r) => `<span style="display:inline-flex;gap:6px;align-items:center">${swatch(color(r.key))}${esc(v)}</span>`},
+    P("cumulative_return", "누적(gross)"), P("alpha", "알파 vs EW"), P("cagr", "CAGR"), {k: "win_rate", h: "승률", f: v => (v * 100).toFixed(1) + "%"},
+    P("mdd", "MDD"), {k: "sharpe", h: "Sharpe", f: v => num(v)}, P("net10", "누적(-0.10%)"), P("net20", "누적(-0.20%)"), P("mdd20", "MDD(-0.20%)")],
+    d.board.map(b => ({...b, net10: net(b, 0.001).cumulative_return, net20: net(b, 0.002).cumulative_return, mdd20: net(b, 0.002).mdd})), true);
+  document.getElementById("m3-note").textContent = `${d.period.start} ~ ${d.period.end} (${d.period.days}거래일) · 종목당 1/${d.top_k} · 알파 = 전략 누적 − 동일가중 누적 · ` +
+    Object.entries(d.strategies).map(([k, v]) => v).join(" / ");
+  table("m3-look", [{k: "name", h: "전략", l: true}, {k: "ok", h: `cut 이후 데이터 교란 시 신호 불변`, f: v => v ? '<span class="ok">✓ OK</span>' : '<span class="fail">✗ FAIL</span>'},
+    P("cumulative_return", "정상 (shift 1)"), P("cheat_no_shift_cumulative_return", "shift 누락 시 (미래참조)")],
+    d.board.slice(1).map(b => ({...b, ok: d.lookahead_check[b.key]})));
+  document.getElementById("m3-look-note").textContent = `signal = top5_mask(score).shift(1) · 교란 기준일 ${d.lookahead_cuts.join(", ")}`;
+  document.getElementById("m3-picks-h").textContent = `오늘 밤 종배 후보 (${d.latest_date} 종가 기준)`;
+  document.getElementById("m3-picks").innerHTML = Object.entries(d.latest_picks).map(([k, ps]) =>
+    `<div><b>${swatch(color(k))}${esc(d.strategies[k])}</b>${ps.map(p => `${esc(p.name)}(${esc(p.symbol)})`).join(", ") || "후보 없음"}</div>`).join("");
+}
+
+show(["m1", "m2", "m3"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "m1");
+</script>
+</body>
+</html>

@@ -27,6 +27,28 @@ CREATE TABLE IF NOT EXISTS user_accounts (
     PRIMARY KEY (user_id, account_id)
 );
 CREATE INDEX IF NOT EXISTS idx_user_accounts_account ON user_accounts(account_id);
+
+-- 일봉 OHLCV (수정주가 기준). 1행 = 1종목의 하루 캔들
+CREATE EXTENSION IF NOT EXISTS timescaledb;
+CREATE TABLE IF NOT EXISTS daily_candles (
+    symbol VARCHAR(12)   NOT NULL,
+    ts     DATE          NOT NULL,
+    open   NUMERIC(14,2) NOT NULL,
+    high   NUMERIC(14,2) NOT NULL,
+    low    NUMERIC(14,2) NOT NULL,
+    close  NUMERIC(14,2) NOT NULL,
+    volume BIGINT        NOT NULL,
+    PRIMARY KEY (symbol, ts)
+);
+SELECT create_hypertable('daily_candles', 'ts', chunk_time_interval => INTERVAL '1 year', if_not_exists => TRUE);
+
+-- 백테스트 유니버스 (예: KOSPI 100)
+CREATE TABLE IF NOT EXISTS symbols (
+    symbol   VARCHAR(12)  PRIMARY KEY,
+    name     VARCHAR(100) NOT NULL,
+    sector   VARCHAR(50),
+    universe VARCHAR(30)  NOT NULL DEFAULT 'KOSPI100'
+);
 """
 
 

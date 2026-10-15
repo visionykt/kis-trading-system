@@ -1,17 +1,23 @@
 import os
 import re
 from contextlib import asynccontextmanager
+from datetime import datetime
 from typing import Literal
 
 import psycopg
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Path, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, model_validator
 
 import auth
+import backtest
+import candles
 import db
 import kis
+import mission02
+import mission03
+import universe
 
 
 @asynccontextmanager
@@ -108,3 +114,82 @@ def kis_order(req: OrderRequest, user: dict = Depends(auth.current_user)):
     if os.environ.get("KIS_ORDER_ENABLED", "false").strip().lower() not in ("1", "true", "yes", "on"):
         raise HTTPException(status_code=403, detail="주문 기능이 비활성화되어 있습니다 (KIS_ORDER_ENABLED=false)")
     return kis.place_order(req.symbol, req.side, req.order_type, req.quantity, req.price)
+
+
+SYMBOL = Path(pattern=r"^\d{6}$", description="종목코드 6자리")
+YMD = Query(None, pattern=r"^\d{8}$", description="YYYYMMDD")
+
+
+@app.post("/candles/{symbol}/collect")
+def collect_candles(symbol: str = SYMBOL, start: str = Query(candles.DEFAULT_START, pattern=r"^\d{8}$"),
+                    end: str | None = YMD, user: dict = Depends(auth.current_user)):
+    """KIS 일봉(FHKST03010100, 수정주가)을 받아 daily_candles 에 upsert 한다. 로그인 필요."""
+    return candles.collect_daily_candles(symbol, start, end)
+
+
+@app.get("/backtest/{symbol}/day-night")
+def backtest_day_night(symbol: str = SYMBOL, start: str | None = YMD, end: str | None = YMD):
+    """DB 일봉으로 단순보유 / 낮(장중) / 밤(종배) 누적수익률·승률·MDD 를 계산한다 (KIS 호출 없음)."""
+    parse = lambda v: datetime.strptime(v, "%Y%m%d").date() if v else None
+    df = candles.load_daily_candles(symbol, parse(start), parse(end))
+    if len(df) < 2:
+        raise HTTPException(status_code=404, detail="daily_candles 에 데이터가 부족합니다. 먼저 수집하세요.")
+    result, rets = backtest.run_backtest(df)
+    curve = rets[["cum_hold", "cum_day", "cum_night"]].round(6)
+    return {"symbol": symbol, **result,
+            "curve": [{"ts": ts.date().isoformat(), **row} for ts, row in curve.to_dict("index").items()]}
+
+
+_cache: dict = {}
+
+
+def _cached(name: str, fn):
+    """daily_candles 가 바뀌지 않았으면 직전 계산 결과를 재사용한다 (유니버스 백테스트는 수 초 걸림)."""
+    with db.connect() as conn:
+        version = conn.execute("SELECT count(*), max(ts) FROM daily_candles").fetchone()
+    hit = _cache.get(name)
+    if hit and hit[0] == version:
+        return hit[1]
+    value = fn()
+    _cache[name] = (version, value)
+    return value
+
+
+def _curve(df) -> list[dict]:
+    return [{"ts": ts.date().isoformat(), **row} for ts, row in df.round(6).to_dict("index").items()]
+
+
+@app.get("/backtest/universe")
+def backtest_universe():
+    """MISSION 02: KOSPI 100 동일가중 낮/밤/보유 + 수수료 민감도 + 종목별 성과표 (DB 데이터만 사용)."""
+    def compute():
+        res = mission02.build(demo=False)
+        ew = res["ew"][["hold", "day", "night"]]
+        curve = (1 + ew).cumprod().add_prefix("cum_")
+        table = res["table"].reset_index().astype(object).where(res["table"].reset_index().notna(), None)
+        return {**mission02.summary_json(res), "curve": _curve(curve), "table": table.to_dict("records")}
+
+    if not universe.list_symbols():
+        raise HTTPException(status_code=404, detail="symbols 가 비어 있습니다. mission02.py 로 먼저 백필하세요.")
+    return _cached("universe", compute)
+
+
+@app.get("/backtest/top5")
+def backtest_top5():
+    """MISSION 03: Top-5 종배 선택 전략 리더보드 · 누적곡선 · 미래참조 점검 · 최신 후보."""
+    def compute():
+        res = mission03.build()
+        curve = (1 + res["curves"]).cumprod()
+        for k, inv in res["invested"].items():  # 비용 차감용 포지션 보유 여부 (0/1)
+            curve[f"inv_{k}"] = inv.reindex(curve.index).fillna(False).astype(int)
+        return {
+            "period": res["period"], "top_k": mission03.pf.TOP_K, "costs": mission03.pf.COSTS,
+            "strategies": {k: v[0] for k, v in mission03.pf.STRATEGIES.items()},
+            "board": mission03.board_json(res), "lookahead_check": res["lookahead"],
+            "lookahead_cuts": res["lookahead_cuts"], "latest_date": res["latest_date"],
+            "latest_picks": res["latest_picks"], "curve": _curve(curve),
+        }
+
+    if not universe.list_symbols():
+        raise HTTPException(status_code=404, detail="symbols 가 비어 있습니다. mission02.py 로 먼저 백필하세요.")
+    return _cached("top5", compute)
