@@ -1,0 +1,891 @@
+{
+  "generated_at": "2026-10-22T04:36:30",
+  "period": {
+    "start": "2020-06-26",
+    "end": "2026-10-14",
+    "days": 1543
+  },
+  "split": "20240101",
+  "score_cost": 0.002,
+  "board": [
+    {
+      "key": "KOSPI100_EW",
+      "name": "KOSPI100 동일가중 종배 (벤치마크)",
+      "criteria": "100종목 전체 동일비중 매일 종배",
+      "net": [
+        {
+          "cost": 0.0,
+          "cumulative_return": 6.6855341734455145,
+          "win_rate": 0.6176279974076474,
+          "mdd": -0.15140886407173293,
+          "sharpe": 2.458533416054972,
+          "cagr": 0.39523288208404583,
+          "days": 1543,
+          "calmar": 44.15550050146411,
+          "win_rate_invested": 0.6176279974076474,
+          "invested_days": 1543
+        },
+        {
+          "cost": 0.0005,
+          "cumulative_return": 2.556001330118244,
+          "win_rate": 0.5897602073882048,
+          "mdd": -0.23866626234187127,
+          "sharpe": 1.5554074193077965,
+          "cagr": 0.2302181055481487,
+          "days": 1543,
+          "calmar": 10.709520922806284,
+          "win_rate_invested": 0.5897602073882048,
+          "invested_days": 1543
+        },
+        {
+          "cost": 0.001,
+          "cumulative_return": 0.644684091997467,
+          "win_rate": 0.5625405055087492,
+          "mdd": -0.4423027966176538,
+          "sharpe": 0.6522814225606212,
+          "cagr": 0.08465146217828634,
+          "days": 1543,
+          "calmar": 1.4575627758346745,
+          "win_rate_invested": 0.5625405055087492,
+          "invested_days": 1543
+        },
+        {
+          "cost": 0.002,
+          "cumulative_return": -0.6485843186919799,
+          "win_rate": 0.4970836033700583,
+          "mdd": -0.7851505581425005,
+          "sharpe": -1.15397057093373,
+          "cagr": -0.15700631642976026,
+          "days": 1543,
+          "calmar": -0.8260636281357204,
+          "win_rate_invested": 0.4970836033700583,
+          "invested_days": 1543
+        }
+      ],
+      "cost": 0.002,
+      "cumulative_return": -0.6485843186919799,
+      "win_rate": 0.4970836033700583,
+      "mdd": -0.7851505581425005,
+      "sharpe": -1.15397057093373,
+      "cagr": -0.15700631642976026,
+      "days": 1543,
+      "calmar": -0.8260636281357204,
+      "win_rate_invested": 0.4970836033700583,
+      "invested_days": 1543,
+      "early": {
+        "cumulative_return": -0.5991567436732512,
+        "mdd": -0.6796268132836218,
+        "calmar": -0.8815966821238572,
+        "sharpe": -2.4449605424132996,
+        "win_rate": 0.4659746251441753
+      },
+      "late": {
+        "cumulative_return": -0.12330898484278807,
+        "mdd": -0.3549079470788804,
+        "calmar": -0.3474393454914153,
+        "sharpe": -0.197568661729514,
+        "win_rate": 0.5369822485207101
+      }
+    },
+    {
+      "key": "A_momentum",
+      "name": "샘플 A 장대양봉·고가마감",
+      "criteria": "(C-L)/(H-L) 상위 5",
+      "net": [
+        {
+          "cost": 0.0,
+          "cumulative_return": 1.4846893939658141,
+          "win_rate": 0.5288399222294232,
+          "mdd": -0.5178891447797991,
+          "sharpe": 0.9845476732483277,
+          "cagr": 0.16025950084652885,
+          "days": 1543,
+          "calmar": 2.8668092562494008,
+          "win_rate_invested": 0.5288399222294232,
+          "invested_days": 1543
+        },
+        {
+          "cost": 0.0005,
+          "cumulative_return": 0.14897338469136723,
+          "win_rate": 0.5055087491898899,
+          "mdd": -0.6882431358070924,
+          "sharpe": 0.21955788888944655,
+          "cagr": 0.022938951961405163,
+          "days": 1543,
+          "calmar": 0.2164545884161538,
+          "win_rate_invested": 0.5055087491898899,
+          "invested_days": 1543
+        },
+        {
+          "cost": 0.001,
+          "cumulative_return": -0.46889511438122455,
+          "win_rate": 0.46856772521062867,
+          "mdd": -0.8023277004158851,
+          "sharpe": -0.545431895469434,
+          "cagr": -0.09818607376766708,
+          "days": 1543,
+          "calmar": -0.5844184541281245,
+          "win_rate_invested": 0.46856772521062867,
+          "invested_days": 1543
+        },
+        {
+          "cost": 0.002,
+          "cumulative_return": -0.8866510040313926,
+          "win_rate": 0.4115359688917693,
+          "mdd": -0.9330906576276766,
+          "sharpe": -2.075411464187195,
+          "cagr": -0.2992401895475919,
+          "days": 1543,
+          "calmar": -0.9502302876824918,
+          "win_rate_invested": 0.4115359688917693,
+          "invested_days": 1543
+        }
+      ],
+      "cost": 0.002,
+      "cumulative_return": -0.8866510040313926,
+      "win_rate": 0.4115359688917693,
+      "mdd": -0.9330906576276766,
+      "sharpe": -2.075411464187195,
+      "cagr": -0.2992401895475919,
+      "days": 1543,
+      "calmar": -0.9502302876824918,
+      "win_rate_invested": 0.4115359688917693,
+      "invested_days": 1543,
+      "early": {
+        "cumulative_return": -0.7454476945313903,
+        "mdd": -0.8245673632455224,
+        "calmar": -0.9040470527444663,
+        "sharpe": -3.0678919682370216,
+        "win_rate": 0.4140715109573241
+      },
+      "late": {
+        "cumulative_return": -0.554712357603907,
+        "mdd": -0.6186037922580812,
+        "calmar": -0.8967167103503325,
+        "sharpe": -1.3825686680727707,
+        "win_rate": 0.40828402366863903
+      },
+      "cheat_no_shift_cumulative_return": -0.5738089381019114
+    },
+    {
+      "key": "B_mean_reversion",
+      "name": "샘플 B 낙폭과대 역추세",
+      "criteria": "-R_day 상위 5",
+      "net": [
+        {
+          "cost": 0.0,
+          "cumulative_return": 3.801831511477081,
+          "win_rate": 0.5832793259883344,
+          "mdd": -0.25863675568618116,
+          "sharpe": 1.3799711265320422,
+          "cagr": 0.2920703450398594,
+          "days": 1543,
+          "calmar": 14.699502015444633,
+          "win_rate_invested": 0.5832793259883344,
+          "invested_days": 1543
+        },
+        {
+          "cost": 0.0005,
+          "cumulative_return": 1.221156684961331,
+          "win_rate": 0.5554115359688918,
+          "mdd": -0.4090883887973793,
+          "sharpe": 0.7507234095504275,
+          "cagr": 0.13920712964080684,
+          "days": 1543,
+          "calmar": 2.9850680645110352,
+          "win_rate_invested": 0.5554115359688918,
+          "invested_days": 1543
+        },
+        {
+          "cost": 0.001,
+          "cumulative_return": 0.02703221238182496,
+          "win_rate": 0.5268956578094621,
+          "mdd": -0.6352321472325781,
+          "sharpe": 0.12147569256881281,
+          "cagr": 0.004365737170802131,
+          "days": 1543,
+          "calmar": 0.042554855732022064,
+          "win_rate_invested": 0.5268956578094621,
+          "invested_days": 1543
+        },
+        {
+          "cost": 0.002,
+          "cumulative_return": -0.7806736011939833,
+          "win_rate": 0.47310434219053793,
+          "mdd": -0.8846925963101077,
+          "sharpe": -1.1370197413944163,
+          "cagr": -0.2194726137781352,
+          "days": 1543,
+          "calmar": -0.8824235722668318,
+          "win_rate_invested": 0.47310434219053793,
+          "invested_days": 1543
+        }
+      ],
+      "cost": 0.002,
+      "cumulative_return": -0.7806736011939833,
+      "win_rate": 0.47310434219053793,
+      "mdd": -0.8846925963101077,
+      "sharpe": -1.1370197413944163,
+      "cagr": -0.2194726137781352,
+      "days": 1543,
+      "calmar": -0.8824235722668318,
+      "win_rate_invested": 0.47310434219053793,
+      "invested_days": 1543,
+      "early": {
+        "cumulative_return": -0.7550678327243616,
+        "mdd": -0.7686906322913692,
+        "calmar": -0.9822779165053699,
+        "sharpe": -2.657206116466262,
+        "win_rate": 0.43829296424452135
+      },
+      "late": {
+        "cumulative_return": -0.10454228513319985,
+        "mdd": -0.5015013666236842,
+        "calmar": -0.20845862462354192,
+        "sharpe": -0.040305420305124975,
+        "win_rate": 0.5177514792899408
+      },
+      "cheat_no_shift_cumulative_return": 129.45924952013905
+    },
+    {
+      "key": "C_volume_surge",
+      "name": "샘플 C 거래량폭발+양봉",
+      "criteria": "vol/MA20 x 양봉 상위 5",
+      "net": [
+        {
+          "cost": 0.0,
+          "cumulative_return": 184.12299038802166,
+          "win_rate": 0.6467919637070642,
+          "mdd": -0.13897666697686528,
+          "sharpe": 4.559437453901362,
+          "cagr": 1.345943615337546,
+          "days": 1543,
+          "calmar": 1324.8482237573855,
+          "win_rate_invested": 0.6472114137483788,
+          "invested_days": 1542
+        },
+        {
+          "cost": 0.0005,
+          "cumulative_return": 84.83101263939747,
+          "win_rate": 0.6208684381075826,
+          "mdd": -0.15909495716017985,
+          "sharpe": 3.901231705410093,
+          "cagr": 1.0691849832523745,
+          "days": 1543,
+          "calmar": 533.2099404884843,
+          "win_rate_invested": 0.6212710765239948,
+          "invested_days": 1542
+        },
+        {
+          "cost": 0.001,
+          "cumulative_return": 38.77970993906648,
+          "win_rate": 0.6014257939079715,
+          "mdd": -0.1909086190771393,
+          "sharpe": 3.243012899164441,
+          "cagr": 0.8249621986595277,
+          "days": 1543,
+          "calmar": 203.1323160081997,
+          "win_rate_invested": 0.6018158236057068,
+          "invested_days": 1542
+        },
+        {
+          "cost": 0.002,
+          "cumulative_return": 7.534855788817982,
+          "win_rate": 0.5463383020090732,
+          "mdd": -0.3578489225711299,
+          "sharpe": 1.9265449249973994,
+          "cagr": 0.4193231801994368,
+          "days": 1543,
+          "calmar": 21.055968911909392,
+          "win_rate_invested": 0.546692607003891,
+          "invested_days": 1542
+        }
+      ],
+      "cost": 0.002,
+      "cumulative_return": 7.534855788817982,
+      "win_rate": 0.5463383020090732,
+      "mdd": -0.3578489225711299,
+      "sharpe": 1.9265449249973994,
+      "cagr": 0.4193231801994368,
+      "days": 1543,
+      "calmar": 21.055968911909392,
+      "win_rate_invested": 0.546692607003891,
+      "invested_days": 1542,
+      "early": {
+        "cumulative_return": 1.0851862240842105,
+        "mdd": -0.3531075069043985,
+        "calmar": 3.0732459742862885,
+        "sharpe": 1.4959721877572414,
+        "win_rate": 0.5628604382929643
+      },
+      "late": {
+        "cumulative_return": 3.0930904349161352,
+        "mdd": -0.2600054385201187,
+        "calmar": 11.89625283425292,
+        "sharpe": 2.3708206355496677,
+        "win_rate": 0.5251479289940828
+      },
+      "cheat_no_shift_cumulative_return": 1210.5704094010698
+    },
+    {
+      "key": "D_rolling_edge",
+      "name": "샘플 D 20일 종배샤프",
+      "criteria": "night_sharpe_20 상위 5",
+      "net": [
+        {
+          "cost": 0.0,
+          "cumulative_return": 54.13350869170922,
+          "win_rate": 0.6604018146467919,
+          "mdd": -0.1499788747731381,
+          "sharpe": 4.158071843386844,
+          "cagr": 0.9248854337989256,
+          "days": 1543,
+          "calmar": 360.94089099943545,
+          "win_rate_invested": 0.6604018146467919,
+          "invested_days": 1543
+        },
+        {
+          "cost": 0.0005,
+          "cumulative_return": 24.534453667901836,
+          "win_rate": 0.6338302009073234,
+          "mdd": -0.1547127656535615,
+          "sharpe": 3.374482324038309,
+          "cagr": 0.6974984816079983,
+          "days": 1543,
+          "calmar": 158.58066762790784,
+          "win_rate_invested": 0.6338302009073234,
+          "invested_days": 1543
+        },
+        {
+          "cost": 0.001,
+          "cumulative_return": 10.821447215022873,
+          "win_rate": 0.609202851587816,
+          "mdd": -0.15942267860282844,
+          "sharpe": 2.5908928046897737,
+          "cagr": 0.49687884760903245,
+          "days": 1543,
+          "calmar": 67.87896998006457,
+          "win_rate_invested": 0.609202851587816,
+          "invested_days": 1543
+        },
+        {
+          "cost": 0.002,
+          "cumulative_return": 1.530798400053646,
+          "win_rate": 0.5534672715489306,
+          "mdd": -0.27124774872299806,
+          "sharpe": 1.0237137659927042,
+          "cagr": 0.16374894948071383,
+          "days": 1543,
+          "calmar": 5.643543245097745,
+          "win_rate_invested": 0.5534672715489306,
+          "invested_days": 1543
+        }
+      ],
+      "cost": 0.002,
+      "cumulative_return": 1.530798400053646,
+      "win_rate": 0.5534672715489306,
+      "mdd": -0.27124774872299806,
+      "sharpe": 1.0237137659927042,
+      "cagr": 0.16374894948071383,
+      "days": 1543,
+      "calmar": 5.643543245097745,
+      "win_rate_invested": 0.5534672715489306,
+      "invested_days": 1543,
+      "early": {
+        "cumulative_return": 0.2756112013366083,
+        "mdd": -0.27124774872299806,
+        "calmar": 1.0160865947612574,
+        "sharpe": 0.6510518852846691,
+        "win_rate": 0.544405997693195
+      },
+      "late": {
+        "cumulative_return": 0.9839888497387181,
+        "mdd": -0.24812167455092693,
+        "calmar": 3.965751285209687,
+        "sharpe": 1.3687406617783742,
+        "win_rate": 0.5650887573964497
+      },
+      "cheat_no_shift_cumulative_return": 308.89324702758876
+    },
+    {
+      "key": "H_lecture_hypothesis",
+      "name": "[참고] 강의 가설: 윗꼬리제거 수급돌파",
+      "criteria": "ma20_gap>0 & upper_shadow<0.15 후보 중 거래대금·거래량배수 평균순위 상위 3종목",
+      "net": [
+        {
+          "cost": 0.0,
+          "cumulative_return": 16.331419253714817,
+          "win_rate": 0.5618924173687622,
+          "mdd": -0.24717078432070894,
+          "sharpe": 2.0470151443423705,
+          "cagr": 0.5933976557210092,
+          "days": 1543,
+          "calmar": 66.07342084784779,
+          "win_rate_invested": 0.5648208469055375,
+          "invested_days": 1535
+        },
+        {
+          "cost": 0.0005,
+          "cumulative_return": 7.053996150065496,
+          "win_rate": 0.541153596889177,
+          "mdd": -0.28447211728252564,
+          "sharpe": 1.5286723200233605,
+          "cagr": 0.4059444578770617,
+          "days": 1543,
+          "calmar": 24.796792801523555,
+          "win_rate_invested": 0.5439739413680782,
+          "invested_days": 1535
+        },
+        {
+          "cost": 0.001,
+          "cumulative_return": 2.7412990581714145,
+          "win_rate": 0.5191186001296176,
+          "mdd": -0.47435851497709614,
+          "sharpe": 1.010303993705455,
+          "cagr": 0.24046637771317125,
+          "days": 1543,
+          "calmar": 5.778960367779579,
+          "win_rate_invested": 0.5218241042345277,
+          "invested_days": 1535
+        },
+        {
+          "cost": 0.002,
+          "cumulative_return": -0.19361038634390226,
+          "win_rate": 0.474400518470512,
+          "mdd": -0.7901634151790828,
+          "sharpe": -0.02647457657992017,
+          "cagr": -0.034533777296325674,
+          "days": 1543,
+          "calmar": -0.2450257536917504,
+          "win_rate_invested": 0.47687296416938113,
+          "invested_days": 1535
+        }
+      ],
+      "cost": 0.002,
+      "cumulative_return": -0.19361038634390226,
+      "win_rate": 0.474400518470512,
+      "mdd": -0.7901634151790828,
+      "sharpe": -0.02647457657992017,
+      "cagr": -0.034533777296325674,
+      "days": 1543,
+      "calmar": -0.2450257536917504,
+      "win_rate_invested": 0.47687296416938113,
+      "invested_days": 1535,
+      "early": {
+        "cumulative_return": -0.25998039724519284,
+        "mdd": -0.6201425489274806,
+        "calmar": -0.419226833725281,
+        "sharpe": -0.42971294044201175,
+        "win_rate": 0.4786620530565167
+      },
+      "late": {
+        "cumulative_return": 0.0896868280978278,
+        "mdd": -0.47675767647356126,
+        "calmar": 0.18811826746286572,
+        "sharpe": 0.254903305898674,
+        "win_rate": 0.46893491124260356
+      },
+      "cheat_no_shift_cumulative_return": 8415.944059233976
+    },
+    {
+      "key": "M1_breakout_edge",
+      "name": "[나만의 1] 수급돌파 야간관성",
+      "criteria": "20일선 위(ma20_gap>0) & 거래량 평소 이상(vol_ratio>1) 후보 중 night_sharpe_20·turnover·vol_ratio 평균순위 상위 3종목",
+      "net": [
+        {
+          "cost": 0.0,
+          "cumulative_return": 295.35258214910556,
+          "win_rate": 0.6228127025275437,
+          "mdd": -0.18011090033906751,
+          "sharpe": 4.025759449680209,
+          "cagr": 1.5333277363443907,
+          "days": 1543,
+          "calmar": 1639.837353503258,
+          "win_rate_invested": 0.624025974025974,
+          "invested_days": 1540
+        },
+        {
+          "cost": 0.0005,
+          "cumulative_return": 136.56746500791238,
+          "win_rate": 0.6066104990278678,
+          "mdd": -0.19964136222010676,
+          "sharpe": 3.4980814636939916,
+          "cagr": 1.2349024136614157,
+          "days": 1543,
+          "calmar": 684.0639809767741,
+          "win_rate_invested": 0.6077922077922078,
+          "invested_days": 1540
+        },
+        {
+          "cost": 0.001,
+          "cumulative_return": 62.834658962090344,
+          "win_rate": 0.5891121192482177,
+          "mdd": -0.21871606033119062,
+          "sharpe": 2.970380871373072,
+          "cagr": 0.9715082818066405,
+          "days": 1543,
+          "calmar": 287.28872889783685,
+          "win_rate_invested": 0.5902597402597403,
+          "invested_days": 1540
+        },
+        {
+          "cost": 0.002,
+          "cumulative_return": 12.728998644226618,
+          "win_rate": 0.5528191834089436,
+          "mdd": -0.2990518026568538,
+          "sharpe": 1.9149255053423535,
+          "cagr": 0.5339003411729775,
+          "days": 1543,
+          "calmar": 42.56452738668983,
+          "win_rate_invested": 0.5538961038961039,
+          "invested_days": 1540
+        }
+      ],
+      "cost": 0.002,
+      "cumulative_return": 12.728998644226618,
+      "win_rate": 0.5528191834089436,
+      "mdd": -0.2990518026568538,
+      "sharpe": 1.9149255053423535,
+      "cagr": 0.5339003411729775,
+      "days": 1543,
+      "calmar": 42.56452738668983,
+      "win_rate_invested": 0.5538961038961039,
+      "invested_days": 1540,
+      "early": {
+        "cumulative_return": 1.2791267876466952,
+        "mdd": -0.2990518026568538,
+        "calmar": 4.277274961336467,
+        "sharpe": 1.5405217222869827,
+        "win_rate": 0.5513264129181085
+      },
+      "late": {
+        "cumulative_return": 5.023797674899197,
+        "mdd": -0.25614979826068307,
+        "calmar": 19.61273328736527,
+        "sharpe": 2.3309677189337994,
+        "win_rate": 0.5547337278106509
+      },
+      "cheat_no_shift_cumulative_return": 14052472.235422365
+    },
+    {
+      "key": "M2_yang_sharpe",
+      "name": "[나만의 2] 양봉 마감 고샤프 야간집중",
+      "criteria": "오늘 양봉 마감(close>open) 종목 중 night_sharpe_20(20일 야간 평균/표준편차) 상위 3종목",
+      "net": [
+        {
+          "cost": 0.0,
+          "cumulative_return": 372.995623121016,
+          "win_rate": 0.6668826960466624,
+          "mdd": -0.13088960442106023,
+          "sharpe": 4.97839385160324,
+          "cagr": 1.631455061896213,
+          "days": 1543,
+          "calmar": 2849.696312941112,
+          "win_rate_invested": 0.6673151750972762,
+          "invested_days": 1542
+        },
+        {
+          "cost": 0.0005,
+          "cumulative_return": 172.46071150628447,
+          "win_rate": 0.6435515230071289,
+          "mdd": -0.13637127211944522,
+          "sharpe": 4.344420713498718,
+          "cagr": 1.3211452717931342,
+          "days": 1543,
+          "calmar": 1264.6410701165062,
+          "win_rate_invested": 0.6439688715953308,
+          "invested_days": 1542
+        },
+        {
+          "cost": 0.001,
+          "cumulative_return": 79.42098213189091,
+          "win_rate": 0.626053143227479,
+          "mdd": -0.15607666940115617,
+          "sharpe": 3.710434085090727,
+          "cagr": 1.047300147629076,
+          "days": 1543,
+          "calmar": 508.8587707350358,
+          "win_rate_invested": 0.6264591439688716,
+          "invested_days": 1542
+        },
+        {
+          "cost": 0.002,
+          "cumulative_return": 16.266572740446534,
+          "win_rate": 0.5839274141283215,
+          "mdd": -0.23366952237197225,
+          "sharpe": 2.4424282309570065,
+          "cagr": 0.5924224593075709,
+          "days": 1543,
+          "calmar": 69.61358321498263,
+          "win_rate_invested": 0.5843060959792478,
+          "invested_days": 1542
+        }
+      ],
+      "cost": 0.002,
+      "cumulative_return": 16.266572740446534,
+      "win_rate": 0.5839274141283215,
+      "mdd": -0.23366952237197225,
+      "sharpe": 2.4424282309570065,
+      "cagr": 0.5924224593075709,
+      "days": 1543,
+      "calmar": 69.61358321498263,
+      "win_rate_invested": 0.5843060959792478,
+      "invested_days": 1542,
+      "early": {
+        "cumulative_return": 1.5794889474674525,
+        "mdd": -0.23366952237197225,
+        "calmar": 6.759499191140153,
+        "sharpe": 2.0275296538399705,
+        "win_rate": 0.5836216839677048
+      },
+      "late": {
+        "cumulative_return": 5.693795977454704,
+        "mdd": -0.19417689696926554,
+        "calmar": 29.322726165285882,
+        "sharpe": 2.9245842596443508,
+        "win_rate": 0.584319526627219
+      },
+      "cheat_no_shift_cumulative_return": 64.32327001817701
+    },
+    {
+      "key": "M3_regime_cash",
+      "name": "[나만의 3] 레짐필터 현금보유",
+      "criteria": "M2 규칙 + KOSPI100 동일가중 지수가 120일선 아래(하락 추세장)면 매수하지 않고 전액 현금 (MDD 방어)",
+      "net": [
+        {
+          "cost": 0.0,
+          "cumulative_return": 130.85044965478667,
+          "win_rate": 0.5022683084899546,
+          "mdd": -0.07778205713500552,
+          "sharpe": 4.6108874778803255,
+          "cagr": 1.219463141713879,
+          "days": 1543,
+          "calmar": 1682.2703651006668,
+          "win_rate_invested": 0.6828193832599119,
+          "invested_days": 1135
+        },
+        {
+          "cost": 0.0005,
+          "cumulative_return": 73.91986645709875,
+          "win_rate": 0.48347375243033053,
+          "mdd": -0.08387075925076604,
+          "sharpe": 4.099101754184443,
+          "cagr": 1.0237451829199942,
+          "days": 1543,
+          "calmar": 881.3544448320181,
+          "win_rate_invested": 0.6572687224669603,
+          "invested_days": 1135
+        },
+        {
+          "cost": 0.001,
+          "cumulative_return": 41.558865140637934,
+          "win_rate": 0.4698639014906027,
+          "mdd": -0.10340278572805672,
+          "sharpe": 3.5825621548034965,
+          "cagr": 0.8452012464591545,
+          "days": 1543,
+          "calmar": 401.9124325135235,
+          "win_rate_invested": 0.6387665198237885,
+          "invested_days": 1135
+        },
+        {
+          "cost": 0.002,
+          "cumulative_return": 12.721722525989072,
+          "win_rate": 0.43616331821127674,
+          "mdd": -0.17684564907661893,
+          "sharpe": 2.5374482559524845,
+          "cagr": 0.5337675439620946,
+          "days": 1543,
+          "calmar": 71.93687032965876,
+          "win_rate_invested": 0.5929515418502203,
+          "invested_days": 1135
+        }
+      ],
+      "cost": 0.002,
+      "cumulative_return": 12.721722525989072,
+      "win_rate": 0.43616331821127674,
+      "mdd": -0.17684564907661893,
+      "sharpe": 2.5374482559524845,
+      "cagr": 0.5337675439620946,
+      "days": 1543,
+      "calmar": 71.93687032965876,
+      "win_rate_invested": 0.5929515418502203,
+      "invested_days": 1135,
+      "early": {
+        "cumulative_return": 1.2270160010065245,
+        "mdd": -0.17684564907661893,
+        "calmar": 6.93834429862007,
+        "sharpe": 2.2253762578954572,
+        "win_rate": 0.39215686274509803
+      },
+      "late": {
+        "cumulative_return": 5.161483581522269,
+        "mdd": -0.14125429182783178,
+        "calmar": 36.5403664181288,
+        "sharpe": 3.023554866934155,
+        "win_rate": 0.492603550295858
+      },
+      "cheat_no_shift_cumulative_return": 46.92550282262981
+    }
+  ],
+  "best": {
+    "cumulative_return": "M2_yang_sharpe",
+    "calmar": "M3_regime_cash",
+    "sharpe": "M3_regime_cash"
+  },
+  "lookahead_check": {
+    "A_momentum": true,
+    "B_mean_reversion": true,
+    "C_volume_surge": true,
+    "D_rolling_edge": true,
+    "H_lecture_hypothesis": true,
+    "M1_breakout_edge": true,
+    "M2_yang_sharpe": true,
+    "M3_regime_cash": true
+  },
+  "concentration": {
+    "M1_breakout_edge": [
+      {
+        "symbol": "034020",
+        "name": "두산에너빌리티",
+        "days": 155,
+        "log_contrib": 0.18295802913117964
+      },
+      {
+        "symbol": "012450",
+        "name": "한화에어로스페이스",
+        "days": 137,
+        "log_contrib": 0.2295469980656184
+      },
+      {
+        "symbol": "064350",
+        "name": "현대로템",
+        "days": 130,
+        "log_contrib": 0.092574475908783
+      },
+      {
+        "symbol": "005930",
+        "name": "삼성전자",
+        "days": 126,
+        "log_contrib": 0.18166901841797883
+      },
+      {
+        "symbol": "047810",
+        "name": "한국항공우주",
+        "days": 113,
+        "log_contrib": 0.11602710491050965
+      }
+    ],
+    "M2_yang_sharpe": [
+      {
+        "symbol": "012450",
+        "name": "한화에어로스페이스",
+        "days": 157,
+        "log_contrib": 0.31322834643226194
+      },
+      {
+        "symbol": "064350",
+        "name": "현대로템",
+        "days": 155,
+        "log_contrib": 0.24779328623055258
+      },
+      {
+        "symbol": "079550",
+        "name": "LIG넥스원",
+        "days": 152,
+        "log_contrib": 0.21882128448740418
+      },
+      {
+        "symbol": "000100",
+        "name": "유한양행",
+        "days": 120,
+        "log_contrib": 0.20887214748083527
+      },
+      {
+        "symbol": "298040",
+        "name": "효성중공업",
+        "days": 104,
+        "log_contrib": 0.25468341174091846
+      }
+    ],
+    "M3_regime_cash": [
+      {
+        "symbol": "000100",
+        "name": "유한양행",
+        "days": 109,
+        "log_contrib": 0.2305703921879002
+      },
+      {
+        "symbol": "064350",
+        "name": "현대로템",
+        "days": 107,
+        "log_contrib": 0.2330430202419613
+      },
+      {
+        "symbol": "079550",
+        "name": "LIG넥스원",
+        "days": 97,
+        "log_contrib": 0.1542886042647907
+      },
+      {
+        "symbol": "012450",
+        "name": "한화에어로스페이스",
+        "days": 96,
+        "log_contrib": 0.25172671428698
+      },
+      {
+        "symbol": "066570",
+        "name": "LG전자",
+        "days": 89,
+        "log_contrib": 0.22702350049663733
+      }
+    ]
+  },
+  "factors": {
+    "close_pos": {
+      "group": "캔들 모양",
+      "formula": "(close-low)/(high-low+1e-9)",
+      "hypothesis": "1에 가까울수록 고가 근처 마감 = 장 막판까지 매수세 유지"
+    },
+    "upper_shadow": {
+      "group": "캔들 모양",
+      "formula": "(high-max(open,close))/(high-low+1e-9)",
+      "hypothesis": "클수록 장 막판 매물 출회 -> 제거 대상"
+    },
+    "body_ratio": {
+      "group": "캔들 모양",
+      "formula": "|close-open|/(high-low+1e-9)",
+      "hypothesis": "클수록 꽉 찬 캔들 = 방향성이 뚜렷한 하루"
+    },
+    "turnover": {
+      "group": "수급·거래대금",
+      "formula": "close*volume",
+      "hypothesis": "실제로 큰돈이 몰린 종목 (유동성 필터)"
+    },
+    "vol_ratio": {
+      "group": "수급·거래대금",
+      "formula": "volume/MA20(volume)",
+      "hypothesis": "평소 대비 거래량 폭발 = 수급 주도주"
+    },
+    "ma20_gap": {
+      "group": "추세·이격도",
+      "formula": "close/MA20(close)-1",
+      "hypothesis": "양수 = 20일선 위 상승 추세, 과도하면 과열"
+    },
+    "ret_5d": {
+      "group": "추세·이격도",
+      "formula": "close/close[t-5]-1",
+      "hypothesis": "최근 5일 단기 모멘텀"
+    },
+    "night_win_20": {
+      "group": "야간 관성",
+      "formula": "mean(R_night>0, 20일)",
+      "hypothesis": "밤마다 갭상승이 반복되는 종목의 고유 습성"
+    },
+    "night_sharpe_20": {
+      "group": "야간 관성",
+      "formula": "mean(R_night,20)/std(R_night,20)",
+      "hypothesis": "수익/변동성 기준으로 꾸준히 밤에 오르는 종목"
+    }
+  }
+}
