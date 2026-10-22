@@ -117,18 +117,20 @@ def kis_order(req: OrderRequest, user: dict = Depends(auth.current_user)):
 
 
 SYMBOL = Path(pattern=r"^\d{6}$", description="종목코드 6자리")
-YMD = Query(None, pattern=r"^\d{8}$", description="YYYYMMDD")
+def YMD():
+    """start/end 가 같은 Query 객체를 공유하면 FastAPI 가 마지막 파라미터명으로 덮어써 start 가 end 값을 읽는다 -> 호출마다 새로 만든다."""
+    return Query(None, pattern=r"^\d{8}$", description="YYYYMMDD")
 
 
 @app.post("/candles/{symbol}/collect")
 def collect_candles(symbol: str = SYMBOL, start: str = Query(candles.DEFAULT_START, pattern=r"^\d{8}$"),
-                    end: str | None = YMD, user: dict = Depends(auth.current_user)):
+                    end: str | None = YMD(), user: dict = Depends(auth.current_user)):
     """KIS 일봉(FHKST03010100, 수정주가)을 받아 daily_candles 에 upsert 한다. 로그인 필요."""
     return candles.collect_daily_candles(symbol, start, end)
 
 
 @app.get("/backtest/{symbol}/day-night")
-def backtest_day_night(symbol: str = SYMBOL, start: str | None = YMD, end: str | None = YMD):
+def backtest_day_night(symbol: str = SYMBOL, start: str | None = YMD(), end: str | None = YMD()):
     """DB 일봉으로 단순보유 / 낮(장중) / 밤(종배) 누적수익률·승률·MDD 를 계산한다 (KIS 호출 없음)."""
     parse = lambda v: datetime.strptime(v, "%Y%m%d").date() if v else None
     df = candles.load_daily_candles(symbol, parse(start), parse(end))
@@ -144,7 +146,9 @@ _cache: dict = {}
 
 
 def _cached(name: str, fn):
-    """daily_candles 가 바뀌지 않았으면 직전 계산 결과를 재사용한다 (유니버스 백테스트는 수 초 걸림)."""
+    """daily_candles 가 바뀌지 않았으면 직전 계산 결과를 재사용한다 (유니버스 백테스트는 수 초 걸림).
+
+    name 에 기간(start/end)이 들어 있으므로 기간별로 따로 캐시된다."""
     with db.connect() as conn:
         version = conn.execute("SELECT count(*), max(ts) FROM daily_candles").fetchone()
     hit = _cache.get(name)
@@ -155,15 +159,25 @@ def _cached(name: str, fn):
     return value
 
 
+def _date_range(start: str | None, end: str | None):
+    """YYYYMMDD 쿼리 -> (start, end) date. 시작이 종료보다 늦으면 422."""
+    s, e = universe.parse_ymd(start), universe.parse_ymd(end)
+    if s and e and s > e:
+        raise HTTPException(status_code=422, detail="start 는 end 보다 늦을 수 없습니다")
+    return s, e
+
+
 def _curve(df) -> list[dict]:
     return [{"ts": ts.date().isoformat(), **row} for ts, row in df.round(6).to_dict("index").items()]
 
 
 @app.get("/backtest/universe")
-def backtest_universe():
-    """MISSION 02: KOSPI 100 동일가중 낮/밤/보유 + 수수료 민감도 + 종목별 성과표 (DB 데이터만 사용)."""
+def backtest_universe(start: str | None = YMD(), end: str | None = YMD()):
+    """MISSION 02: KOSPI 100 동일가중 낮/밤/보유 + 수수료 민감도 + 종목별 성과표 (DB 데이터만 사용). start/end 로 기간 지정."""
+    s, e = _date_range(start, end)
+
     def compute():
-        res = mission02.build(demo=False)
+        res = mission02.build(s, e, demo=False)
         ew = res["ew"][["hold", "day", "night"]]
         curve = (1 + ew).cumprod().add_prefix("cum_")
         table = res["table"].reset_index().astype(object).where(res["table"].reset_index().notna(), None)
@@ -171,14 +185,16 @@ def backtest_universe():
 
     if not universe.list_symbols():
         raise HTTPException(status_code=404, detail="symbols 가 비어 있습니다. mission02.py 로 먼저 백필하세요.")
-    return _cached("universe", compute)
+    return _cached(f"universe:{start}:{end}", compute)
 
 
 @app.get("/backtest/top5")
-def backtest_top5():
-    """MISSION 03: Top-5 종배 선택 전략 리더보드 · 누적곡선 · 미래참조 점검 · 최신 후보."""
+def backtest_top5(start: str | None = YMD(), end: str | None = YMD()):
+    """MISSION 03: Top-5 종배 선택 전략 리더보드 · 누적곡선 · 미래참조 점검 · 최신 후보. start/end 로 기간 지정."""
+    s, e = _date_range(start, end)
+
     def compute():
-        res = mission03.build()
+        res = mission03.build(s, e)
         curve = (1 + res["curves"]).cumprod()
         for k, inv in res["invested"].items():  # 비용 차감용 포지션 보유 여부 (0/1)
             curve[f"inv_{k}"] = inv.reindex(curve.index).fillna(False).astype(int)
@@ -192,4 +208,4 @@ def backtest_top5():
 
     if not universe.list_symbols():
         raise HTTPException(status_code=404, detail="symbols 가 비어 있습니다. mission02.py 로 먼저 백필하세요.")
-    return _cached("top5", compute)
+    return _cached(f"top5:{start}:{end}", compute)
