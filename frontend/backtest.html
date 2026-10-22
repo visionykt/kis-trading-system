@@ -294,7 +294,7 @@ function m7Draw() {
   const rows = d.board.map(b => ({...m7net(b), key: b.key, name: b.name, early: b.early, late: b.late}));
   table("m7-table", [
     {k: "name", h: "전략", l: true, f: (v, r) => `<span style="display:inline-flex;gap:6px;align-items:center">${swatch(css(M7[r.key]))}${esc(v)}</span>`},
-    P("cumulative_return", "누적수익률"), P("mdd", "MDD"), {k: "calmar", h: "Calmar", f: v => num(v, 1)}, {k: "sharpe", h: "Sharpe", f: v => num(v)},
+    P("cumulative_return", "누적수익률"), P("cagr", "CAGR"), P("mdd", "MDD"), {k: "calmar", h: "Calmar", f: v => num(v, 1)}, {k: "sharpe", h: "Sharpe", f: v => num(v)},
     {k: "win_rate", h: "승률(전체)", f: v => (v * 100).toFixed(1) + "%"}, {k: "win_rate_invested", h: "승률(보유일)", f: v => v == null ? "-" : (v * 100).toFixed(1) + "%"},
     {k: "invested_days", h: "보유일"},
     {k: "early", h: "Sharpe 설계구간", f: v => v ? num(v.sharpe) : "-"}, {k: "late", h: "Sharpe 검증구간", f: v => v ? num(v.sharpe) : "-"}], rows, true);

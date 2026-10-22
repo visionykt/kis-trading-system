@@ -293,7 +293,7 @@ def _fmt_row(b: dict, m: dict) -> str:
     sh = f"{m['sharpe']:.2f}" if m["sharpe"] is not None else "-"
     cal = f"{m['calmar']:.1f}" if m["calmar"] is not None else "-"
     wr = m["win_rate_invested"]
-    return (f"{b['name']:<30}{m['cumulative_return']:>+12.0%}{m['mdd']:>+8.1%}{cal:>8}{sh:>7}"
+    return (f"{b['name']:<30}{m['cumulative_return']:>+12.0%}{m['cagr']:>+9.1%}{m['mdd']:>+8.1%}{cal:>8}{sh:>7}"
             f"{m['win_rate']:>8.1%}{(f'{wr:.1%}' if wr is not None else '-'):>9}{m['invested_days']:>7}")
 
 
@@ -301,7 +301,7 @@ def format_report(res: dict) -> str:
     p = res["period"]
     L = [f"[MISSION 02 · Week 7] 종가배팅 최고 점수 챌린지  {p['start']} ~ {p['end']} ({p['days']}거래일)",
          f"점수 기준 왕복비용 {res['score_cost']:.2%} 차감 · 신호=mask.shift(1) · 선택 종목 없으면 현금\n"]
-    hdr = f"{'전략':<30}{'누적수익률':>12}{'MDD':>8}{'Calmar':>8}{'Sharpe':>7}{'승률(전체)':>8}{'승률(보유)':>9}{'보유일':>7}"
+    hdr = f"{'전략':<30}{'누적수익률':>12}{'CAGR':>9}{'MDD':>8}{'Calmar':>8}{'Sharpe':>7}{'승률(전체)':>8}{'승률(보유)':>9}{'보유일':>7}"
     L += [hdr, "-" * len(hdr)]
     for b in res["board"]:
         L.append(_fmt_row(b, b))

@@ -146,3 +146,10 @@ def test_picks_on_last_day_is_pending_and_early_date_rejected(res):
     assert all(p["next_night_return"] is None for s in d["strategies"].values() for p in s["picks"])
     with pytest.raises(ValueError):
         m.picks_on(res, pd.Timestamp(res["period"]["start"]) - pd.Timedelta(days=30))
+
+
+def test_board_cagr_matches_formula(res):
+    n = res["period"]["days"]
+    for b in m.api_payload(res)["board"]:
+        for row in [b, *b["net"]]:
+            assert row["cagr"] == pytest.approx((1 + row["cumulative_return"]) ** (252 / n) - 1)
