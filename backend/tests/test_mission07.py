@@ -94,3 +94,55 @@ def test_regime_uses_only_past_prices():
     broken = {k: v.copy() for k, v in p.items()}
     broken["close"].loc[broken["close"].index > cut] *= 0.1
     pd.testing.assert_series_equal(base.loc[:cut], m.market_regime(broken, 60).loc[:cut])
+
+
+# ---------------------------------------------------------------- API 페이로드 / 날짜별 선정 내역
+
+@pytest.fixture
+def res(monkeypatch):
+    import universe
+
+    panel = synth_panel(n=320, seed=3)
+    monkeypatch.setattr(universe, "load_panel", lambda start=None, end=None, **kw: panel)
+    monkeypatch.setattr(universe, "list_symbols", lambda *a, **k: [{"symbol": s, "name": f"종목{s}", "sector": "x"} for s in SYMS])
+    return m.build(split="")
+
+
+def test_api_payload_is_json_safe_and_complete(res):
+    import json
+
+    d = m.api_payload(res)
+    json.dumps(d, allow_nan=False)  # NaN/inf 가 남아 있으면 ValueError
+    assert set(d["strategies"]) >= {"KOSPI100_EW", *m.STRATEGIES}
+    assert {k for k, v in d["strategies"].items() if v["group"] == "mine"} == set(m.MINE)
+    assert d["costs"] == [0.0, 0.0005, 0.001, 0.002]
+    row = d["curve"][0]
+    assert "ts" in row and all(f"inv_{k}" in row for k in m.STRATEGIES) and "KOSPI100_EW" in row
+    for b in d["board"]:
+        assert [n["cost"] for n in b["net"]] == m.COSTS
+        assert b["criteria"]
+
+
+def test_picks_on_snaps_to_previous_trading_day_and_reports_next_night(res):
+    idx = res["night"].index
+    t = idx[idx.get_loc(pd.Timestamp(res["period"]["start"])) + 5]
+    sat = t + pd.Timedelta(days=1) if t.weekday() == 4 else t  # 금요일이면 토요일로 조회
+    d = m.picks_on(res, sat)
+    assert d["date"] == t.date().isoformat()
+    nxt = res["night"].shift(-1)
+    for key, s in d["strategies"].items():
+        picked = {p["symbol"] for p in s["picks"]}
+        assert picked == set(res["masks"][key].columns[res["masks"][key].loc[t]])
+        for p in s["picks"]:
+            assert p["weight"] == pytest.approx(1 / len(s["picks"]))
+            assert p["next_night_return"] == pytest.approx(nxt.at[t, p["symbol"]])  # 신호일 다음 거래일의 밤 수익률
+            assert set(p["factors"]) == set(m.PICK_COLS)
+
+
+def test_picks_on_last_day_is_pending_and_early_date_rejected(res):
+    last = res["night"].index[-1]
+    d = m.picks_on(res, last)
+    assert d["next_date"] is None
+    assert all(p["next_night_return"] is None for s in d["strategies"].values() for p in s["picks"])
+    with pytest.raises(ValueError):
+        m.picks_on(res, pd.Timestamp(res["period"]["start"]) - pd.Timedelta(days=30))

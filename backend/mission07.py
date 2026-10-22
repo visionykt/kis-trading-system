@@ -186,10 +186,12 @@ def build(start=None, end=None, split: str = SPLIT, costs=COSTS) -> dict:
     look = {k: all(lookahead_check(panel, fn, c) for c in cuts) for k, (_, _, fn) in STRATEGIES.items()}
     best = {m: max(board[1:], key=lambda b: b[m] if b[m] is not None else -1e9)["key"]
             for m in ("cumulative_return", "calmar", "sharpe")}
-    return {"period": {"start": idx[0].date().isoformat(), "end": idx[-1].date().isoformat(), "days": len(idx)},
-            "split": split, "score_cost": SCORE_COST, "board": board, "best": best, "lookahead": look,
-            "lookahead_cuts": [c.date().isoformat() for c in cuts], "curves": pd.DataFrame(curves),
-            "invested": invested, "masks": masks, "panel": panel, "factors": F, "night": night, "names": names}
+    res = {"period": {"start": idx[0].date().isoformat(), "end": idx[-1].date().isoformat(), "days": len(idx)},
+           "split": split, "score_cost": SCORE_COST, "board": board, "best": best, "lookahead": look,
+           "lookahead_cuts": [c.date().isoformat() for c in cuts], "curves": pd.DataFrame(curves),
+           "invested": invested, "masks": masks, "panel": panel, "factors": F, "night": night, "names": names}
+    res["concentration"] = {k: concentration(res, k) for k in MINE}
+    return res
 
 
 # ------------------------------------------------------------------ 선정 내역 (설명 가능성)
@@ -219,6 +221,70 @@ def concentration(res: dict, key: str, top: int = 5) -> list[dict]:
     df = pd.DataFrame({"days": days, "contrib": contrib}).sort_values("days", ascending=False).head(top)
     return [{"symbol": s, "name": res["names"].get(s), "days": int(r.days), "log_contrib": float(r.contrib)}
             for s, r in df.iterrows()]
+
+
+# ------------------------------------------------------------------ API 페이로드
+
+def _clean(v):
+    """JSON 은 NaN/inf 를 표현할 수 없으므로 None 으로 바꾼다."""
+    if isinstance(v, dict):
+        return {k: _clean(x) for k, x in v.items()}
+    if isinstance(v, (list, tuple)):
+        return [_clean(x) for x in v]
+    if isinstance(v, (float, np.floating)):
+        return float(v) if np.isfinite(v) else None
+    if isinstance(v, np.integer):
+        return int(v)
+    if isinstance(v, np.bool_):
+        return bool(v)
+    return v
+
+
+def api_payload(res: dict) -> dict:
+    """리더보드 + 전략 설명 + (비용 0 기준) 일별 수익률/보유 여부. 프론트가 비용 c 를 보유일마다 차감해 곡선을 그린다."""
+    cur = res["curves"].round(6)
+    rows = []
+    for ts, r in cur.iterrows():
+        row = {"ts": ts.date().isoformat(), **{k: v for k, v in r.items()}}
+        row.update({f"inv_{k}": int(res["invested"][k].at[ts]) for k in res["invested"]})
+        rows.append(row)
+    return _clean({
+        "period": res["period"], "split": res["split"], "score_cost": res["score_cost"], "costs": COSTS,
+        "strategies": {"KOSPI100_EW": {"name": "KOSPI100 동일가중 종배 (벤치마크)", "criteria": "100종목 전체 동일비중 매일 종배",
+                                       "group": "base"},
+                       **{k: {"name": n, "criteria": c, "group": "mine" if k in MINE else "ref"}
+                          for k, (n, c, _) in STRATEGIES.items()}},
+        "board": res["board"], "best": res["best"], "lookahead_check": res["lookahead"],
+        "lookahead_cuts": res["lookahead_cuts"], "concentration": res["concentration"],
+        "factors": {k: dict(zip(("group", "formula", "hypothesis"), v)) for k, v in factors.FACTORS.items()},
+        "curve": rows,
+    })
+
+
+def picks_on(res: dict, date: pd.Timestamp) -> dict:
+    """date(신호일 t, 그날 15:20 데이터로 선정) 에 각 전략이 뽑은 종목 · 팩터값 · 다음 거래일 밤 수익률 R_night(t+1)."""
+    idx = res["night"].index
+    lo = pd.Timestamp(res["period"]["start"])
+    pos = idx.searchsorted(date, side="right") - 1  # 비거래일이면 직전 거래일로
+    if pos < 0 or idx[pos] < lo:
+        raise ValueError(f"{res['period']['start']} 이후 날짜를 선택하세요")
+    ts = idx[pos]
+    nxt = res["night"].shift(-1)
+    F, names = res["factors"], res["names"]
+    out = {}
+    for key in STRATEGIES:
+        row = res["masks"][key].loc[ts]
+        syms = list(row.index[row.to_numpy()])
+        picks = [{"symbol": s, "name": names.get(s), "weight": 1 / len(syms),
+                  "factors": {c: F[c].at[ts, s] for c in PICK_COLS},
+                  "next_night_return": nxt.at[ts, s]} for s in syms]
+        rets = [p["next_night_return"] for p in picks if pd.notna(p["next_night_return"])]
+        out[key] = {"picks": picks, "portfolio_next_night": float(np.mean(rets)) if rets else None}
+    return _clean({
+        "date": ts.date().isoformat(), "next_date": idx[pos + 1].date().isoformat() if pos + 1 < len(idx) else None,
+        "regime_up": bool(market_regime(res["panel"], 120).at[ts]), "strategies": out,
+        "valid_from": res["period"]["start"], "valid_to": idx[-1].date().isoformat(),
+    })
 
 
 # ------------------------------------------------------------------ 리포트
@@ -305,7 +371,6 @@ def main() -> None:
     ap.add_argument("--split", default=SPLIT, help="설계/검증 구간 경계 YYYYMMDD (빈 값이면 분리 안 함)")
     args = ap.parse_args()
     res = build(universe.parse_ymd(args.start), universe.parse_ymd(args.end), args.split)
-    res["concentration"] = {k: concentration(res, k) for k in MINE}
     print(format_report(res))
     for k, v in save(res).items():
         print(f"  {k:<16}-> {v}")

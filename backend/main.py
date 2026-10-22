@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Literal
 
+import pandas as pd
 import psycopg
 from fastapi import Depends, FastAPI, HTTPException, Path, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,6 +18,7 @@ import db
 import kis
 import mission02
 import mission03
+import mission07
 import universe
 
 
@@ -209,3 +211,27 @@ def backtest_top5(start: str | None = YMD(), end: str | None = YMD()):
     if not universe.list_symbols():
         raise HTTPException(status_code=404, detail="symbols 가 비어 있습니다. mission02.py 로 먼저 백필하세요.")
     return _cached(f"top5:{start}:{end}", compute)
+
+
+@app.get("/backtest/mission07")
+def backtest_mission07(start: str | None = YMD(), end: str | None = YMD()):
+    """Week 7 MISSION 02/03: 샘플 A~D · 강의가설 · 나만의 전략 1~3 리더보드 + 비용 0 기준 일별 수익률 (프론트가 비용 차감). start/end 로 기간 지정."""
+    s, e = _date_range(start, end)
+    if not universe.list_symbols():
+        raise HTTPException(status_code=404, detail="symbols 가 비어 있습니다. mission02.py 로 먼저 백필하세요.")
+    res = _cached(f"m07res:{start}:{end}", lambda: mission07.build(s, e))
+    return _cached(f"m07:{start}:{end}", lambda: mission07.api_payload(res))
+
+
+@app.get("/backtest/mission07/picks")
+def backtest_mission07_picks(date: str = Query(pattern=r"^\d{8}$", description="신호일 YYYYMMDD (비거래일이면 직전 거래일)"),
+                             start: str | None = YMD(), end: str | None = YMD()):
+    """날짜별 종목 선정 내역: 각 전략이 그날 15:20 데이터로 뽑은 종목 · 팩터값 · 다음 거래일 밤 수익률."""
+    s, e = _date_range(start, end)
+    if not universe.list_symbols():
+        raise HTTPException(status_code=404, detail="symbols 가 비어 있습니다. mission02.py 로 먼저 백필하세요.")
+    res = _cached(f"m07res:{start}:{end}", lambda: mission07.build(s, e))
+    try:
+        return mission07.picks_on(res, pd.Timestamp(universe.parse_ymd(date)))
+    except ValueError as err:
+        raise HTTPException(status_code=422, detail=str(err))

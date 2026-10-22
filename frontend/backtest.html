@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Week 6 Backtest</title>
+<title>Week 6-7 Backtest</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root {
@@ -51,19 +51,62 @@
   select { font: inherit; padding: 3px 6px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; }
   .picks { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px; }
   .picks div { font-size: 13px; } .picks b { display: flex; gap: 6px; align-items: center; }
+  .strat { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .strat .card { margin: 0; } .strat h3 { font-size: 14px; margin: 0 0 4px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .strat .rule { color: var(--ink-2); font-size: 13px; margin: 0 0 8px; }
+  .strat .kv { display: flex; gap: 14px; flex-wrap: wrap; font-variant-numeric: tabular-nums; font-size: 13px; color: var(--ink-2); }
+  .strat .kv b { color: var(--ink); font-size: 15px; } .strat .kv b.pos { color: var(--pos); } .strat .kv b.neg { color: var(--neg); }
+  .tag { font-size: 11px; border: 1px solid var(--line); border-radius: 999px; padding: 0 7px; color: var(--ink-2); }
+  .tag.best { border-color: var(--pos); color: var(--pos); }
+  .ctl { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+  .ctl input[type=date] { font: inherit; padding: 3px 6px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; }
+  .ctl button { font: inherit; padding: 3px 10px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
+  .warn { border-left: 3px solid var(--s4); }
+  details summary { cursor: pointer; font-weight: 600; font-size: 15px; }
+  .pk h3 { font-size: 14px; margin: 14px 0 4px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 </style>
 </head>
 <body>
 <main>
-  <h1>Week 6 · 낮 vs 밤(종가 배팅) 백테스트</h1>
+  <h1>Week 6–7 · 낮 vs 밤(종가 배팅) 백테스트</h1>
   <p class="sub"><a href="index.html" style="color:inherit">← 홈</a> · KIS 수정주가 일봉(FHKST03010100, FID_ORG_ADJ_PRC="0") · 2020-01 ~ · 수수료 표기가 없으면 제외 기준</p>
   <nav role="tablist">
-    <button role="tab" data-tab="m1" aria-selected="true">MISSION 01 · 삼성전자</button>
+    <button role="tab" data-tab="m7" aria-selected="true">WEEK 07 · 최고 점수 챌린지</button>
+    <button role="tab" data-tab="m1" aria-selected="false">MISSION 01 · 삼성전자</button>
     <button role="tab" data-tab="m2" aria-selected="false">MISSION 02 · KOSPI 100</button>
     <button role="tab" data-tab="m3" aria-selected="false">MISSION 03 · Top-5 선택</button>
   </nav>
 
-  <section id="m1" class="on">
+  <section id="m7" class="on">
+    <div class="card">
+      <div class="ctl">
+        <label class="sel">기간 <input type="date" id="m7-start"> ~ <input type="date" id="m7-end"></label>
+        <button id="m7-apply">적용</button>
+        <label class="sel">왕복 거래비용 <select id="m7-cost"></select></label>
+        <label class="sel"><input type="checkbox" id="m7-ref"> 비교군(샘플 A~D · 강의 가설)도 차트·선정 내역에 표시</label>
+      </div>
+      <p class="note" id="m7-note"></p>
+    </div>
+    <div class="strat" id="m7-cards"></div>
+    <div class="card"><h2>누적수익률 — 벤치마크 vs 나만의 전략 1·2·3 <span class="note">(로그 스케일 · 비용은 보유일마다 차감)</span></h2>
+      <div class="chart"><canvas id="m7-chart"></canvas></div></div>
+    <div class="card scroll"><h2>리더보드 <span class="note" id="m7-board-note"></span></h2><table id="m7-table"></table></div>
+    <div class="card scroll"><h2>날짜별 종목 선정 내역 <span class="note">(신호일 t 의 15:20 데이터로 선정 → t 종가 매수 → 다음 거래일 시가 매도)</span></h2>
+      <div class="ctl">
+        <button id="m7-prev" title="이전 거래일">◀</button><input type="date" id="m7-date"><button id="m7-next" title="다음 거래일">▶</button>
+        <span class="note" id="m7-date-note"></span>
+      </div>
+      <div class="pk" id="m7-picks"></div></div>
+    <div class="card scroll"><h2>함정 01 · 미래참조 점검</h2><table id="m7-look"></table><p class="note" id="m7-look-note"></p></div>
+    <div class="card scroll"><h2>집중도 점검 <span class="note">(한두 종목 운이 아닌지 — 가장 자주 뽑힌 종목)</span></h2><table id="m7-conc"></table></div>
+    <div class="card scroll"><details><summary>파생 팩터 컬럼 9개 (OHLCV 옆에 추가)</summary><table id="m7-factors"></table></details></div>
+    <div class="card warn"><h2>해석 시 주의</h2>
+      <p class="note">① 유니버스가 <b>현재</b> KOSPI 100 구성종목이라 생존편향이 있다(자주 뽑힌 방산주 등 이 구간의 승자 쏠림).
+      ② 파라미터(3종목, 120일선 등)를 전체 구간을 보며 소규모 후보군에서 골랐으므로 설계/검증 구간 분리는 일관성 점검일 뿐 진짜 표본 외 결과가 아니다.
+      ③ 강의의 “윗꼬리 제거” 가설은 이 데이터에서 손실이었다 — 비교군 행으로 남겨 두었다.</p></div>
+  </section>
+
+  <section id="m1">
     <div class="tiles" id="m1-tiles"></div>
     <div class="card"><h2>누적수익률 — 단순보유 vs 낮(장중) vs 밤(종배)</h2><div class="chart"><canvas id="m1-chart"></canvas></div></div>
     <div class="card scroll"><h2>성과표</h2><table id="m1-table"></table>
@@ -168,8 +211,120 @@ const loaded = {};
 async function load(tab) {
   if (loaded[tab]) return;
   loaded[tab] = true;
-  try { await ({m1, m2, m3})[tab](); }
+  try { await ({m1, m2, m3, m7})[tab](); }
   catch (e) { loaded[tab] = false; document.getElementById(tab).insertAdjacentHTML("afterbegin", `<p class="err card">불러오기 실패: ${esc(e.message)}</p>`); }
+}
+
+const M7 = {
+  KOSPI100_EW: "--base", M1_breakout_edge: "--s1", M2_yang_sharpe: "--s2", M3_regime_cash: "--s3",
+  A_momentum: "--q2", B_mean_reversion: "--s4", C_volume_surge: "--s5", D_rolling_edge: "--q4", H_lecture_hypothesis: "--muted",
+};
+const FACTOR_COLS = [["close_pos", "종가위치"], ["upper_shadow", "윗꼬리"], ["ma20_gap", "20일 이격"], ["vol_ratio", "거래량배수"],
+                     ["ret_5d", "5일 수익"], ["night_win_20", "야간승률20"], ["night_sharpe_20", "야간샤프20"]];
+const MINE = ["M1_breakout_edge", "M2_yang_sharpe", "M3_regime_cash"];
+let m7d = null, picksReq = null;
+const ymd = v => v.replaceAll("-", "");
+const m7q = () => {
+  const s = document.getElementById("m7-start").value, e = document.getElementById("m7-end").value;
+  return [s && "start=" + ymd(s), e && "end=" + ymd(e)].filter(Boolean).join("&");
+};
+const m7cost = () => Number(document.getElementById("m7-cost").value);
+const m7net = b => b.net.find(n => Math.abs(n.cost - m7cost()) < 1e-12);
+
+async function m7() {
+  const q = m7q();
+  const d = m7d = await get("/backtest/mission07" + (q ? "?" + q : ""));
+  const cost = document.getElementById("m7-cost"), dt = document.getElementById("m7-date");
+  if (!cost.options.length) {
+    cost.innerHTML = d.costs.map(c => `<option value="${c}"${c === d.score_cost ? " selected" : ""}>${(c * 100).toFixed(2)}%</option>`).join("");
+    cost.onchange = m7Draw;
+    document.getElementById("m7-ref").onchange = () => { m7Draw(); m7Picks(dt.value); };
+    document.getElementById("m7-apply").onclick = () => { loaded.m7 = false; load("m7"); };
+    dt.onchange = () => dt.value && m7Picks(dt.value);
+    const step = n => {
+      const i = m7d.curve.findIndex(r => r.ts === dt.value), last = m7d.curve.length - 1;
+      m7Picks(m7d.curve[Math.min(Math.max((i < 0 ? last : i) + n, 0), last)].ts);
+    };
+    document.getElementById("m7-prev").onclick = () => step(-1);
+    document.getElementById("m7-next").onclick = () => step(1);
+  }
+  const startEl = document.getElementById("m7-start"), endEl = document.getElementById("m7-end");
+  startEl.min = endEl.min = dt.min = d.period.start;
+  startEl.max = endEl.max = dt.max = d.period.end;
+  document.getElementById("m7-note").textContent =
+    `비교 기간 ${d.period.start} ~ ${d.period.end} (${d.period.days}거래일; 모든 전략의 팩터 워밍업이 끝난 날부터) · 신호 = 선택마스크.shift(1) (t 일 종가 매수 → t+1 일 시가 매도) · 선택 종목이 없으면 현금`;
+  m7Draw();
+  table("m7-look", [{k: "name", h: "전략", l: true}, {k: "ok", h: "cut 이후 데이터 교란 시 신호 불변", f: v => v ? '<span class="ok">✓ OK</span>' : '<span class="fail">✗ FAIL</span>'},
+    P("cumulative_return", "정상 (shift 1)"), P("cheat_no_shift_cumulative_return", "shift 누락 시 (미래참조)")],
+    d.board.slice(1).map(b => ({...b, ok: d.lookahead_check[b.key]})));
+  document.getElementById("m7-look-note").textContent = `교란 기준일 ${d.lookahead_cuts.join(", ")} · 누적수익률은 비용 ${(d.score_cost * 100).toFixed(2)}% 기준`;
+  table("m7-conc", [{k: "name", h: "전략", l: true}, {k: "top", h: "가장 자주 뽑힌 종목 (선택 일수)", l: true, f: v => v}],
+    Object.entries(d.concentration).map(([k, v]) => ({name: d.strategies[k].name, top: v.map(x => `${esc(x.name)}(${x.days}일)`).join(", ")})));
+  table("m7-factors", [{k: "id", h: "컬럼", l: true}, {k: "group", h: "그룹", l: true}, {k: "formula", h: "수식", l: true}, {k: "hypothesis", h: "가설", l: true}],
+    Object.entries(d.factors).map(([id, f]) => ({id, ...f})));
+  m7Picks(dt.value && dt.value >= d.period.start && dt.value <= d.period.end ? dt.value : d.period.end);
+}
+
+function m7Cards() {
+  const d = m7d, label = {cumulative_return: "수익률 1위", calmar: "Calmar 1위", sharpe: "Sharpe 1위"};
+  const tags = {};
+  Object.entries(d.best).forEach(([m, k]) => (tags[k] ??= []).push(label[m]));
+  const cards = MINE.map(k => {
+    const b = d.board.find(x => x.key === k), m = m7net(b);
+    return `<div class="card"><h3>${swatch(css(M7[k]))}${esc(d.strategies[k].name)} ${(tags[k] || []).map(t => `<span class="tag best">${t}</span>`).join(" ")}</h3>
+      <p class="rule">${esc(d.strategies[k].criteria)}</p>
+      <div class="kv"><span>누적 <b class="${sign(m.cumulative_return)}">${pct(m.cumulative_return, 0)}</b></span><span>MDD <b>${pct(m.mdd)}</b></span>
+      <span>Calmar <b>${num(m.calmar, 1)}</b></span><span>Sharpe <b>${num(m.sharpe)}</b></span>
+      <span>승률(보유일) <b>${m.win_rate_invested == null ? "-" : (m.win_rate_invested * 100).toFixed(1) + "%"}</b></span></div></div>`;
+  });
+  const ref = d.board.filter(b => d.strategies[b.key].group !== "mine");
+  cards.push(`<div class="card"><h3>${swatch(css("--base"))}비교군</h3>
+    <p class="rule">${ref.map(b => `<b>${esc(b.name)}</b>: ${esc(b.criteria)}`).join("<br>")}</p></div>`);
+  document.getElementById("m7-cards").innerHTML = cards.join("");
+}
+
+function m7Draw() {
+  const d = m7d, c = m7cost(), withRef = document.getElementById("m7-ref").checked;
+  const keys = Object.keys(d.strategies).filter(k => withRef || k === "KOSPI100_EW" || d.strategies[k].group === "mine");
+  lineChart("m7-chart", d.curve.map(r => r.ts), keys.map(k => {
+    let eq = 1;
+    return {label: d.strategies[k].name, color: css(M7[k]), dash: d.strategies[k].group !== "mine",
+            y: d.curve.map(r => (eq *= 1 + r[k] - (k === "KOSPI100_EW" || r["inv_" + k] === 1 ? c : 0)))};
+  }), {log: true});
+  const rows = d.board.map(b => ({...m7net(b), key: b.key, name: b.name, early: b.early, late: b.late}));
+  table("m7-table", [
+    {k: "name", h: "전략", l: true, f: (v, r) => `<span style="display:inline-flex;gap:6px;align-items:center">${swatch(css(M7[r.key]))}${esc(v)}</span>`},
+    P("cumulative_return", "누적수익률"), P("mdd", "MDD"), {k: "calmar", h: "Calmar", f: v => num(v, 1)}, {k: "sharpe", h: "Sharpe", f: v => num(v)},
+    {k: "win_rate", h: "승률(전체)", f: v => (v * 100).toFixed(1) + "%"}, {k: "win_rate_invested", h: "승률(보유일)", f: v => v == null ? "-" : (v * 100).toFixed(1) + "%"},
+    {k: "invested_days", h: "보유일"},
+    {k: "early", h: "Sharpe 설계구간", f: v => v ? num(v.sharpe) : "-"}, {k: "late", h: "Sharpe 검증구간", f: v => v ? num(v.sharpe) : "-"}], rows, true);
+  document.getElementById("m7-board-note").textContent =
+    `비용 ${(c * 100).toFixed(2)}% 기준 · 설계/검증 구간은 ${d.split || "-"} 경계 (비용 ${(d.score_cost * 100).toFixed(2)}% 고정) · 열 이름을 누르면 정렬`;
+  m7Cards();
+}
+
+async function m7Picks(date) {
+  const el = document.getElementById("m7-picks"), note = document.getElementById("m7-date-note");
+  const q = m7q(), req = picksReq = `${date}|${q}`;
+  try {
+    const d = await get(`/backtest/mission07/picks?date=${ymd(date)}` + (q ? "&" + q : ""));
+    if (picksReq !== req) return;  // 더 최신 요청이 있으면 버린다
+    document.getElementById("m7-date").value = d.date;
+    note.textContent = `신호일 ${d.date}${d.next_date ? ` → 수익 확정 ${d.next_date} 시가` : " (다음 거래일 미확정: 오늘 밤 종배 후보)"} · 시장 레짐(120일선) ${d.regime_up ? "상승 ▲" : "하락 ▼ → 전략 3 현금"}`;
+    const fmt = {close_pos: v => num(v), upper_shadow: v => num(v), ma20_gap: v => pct(v), vol_ratio: v => num(v) + "x", ret_5d: v => pct(v),
+                 night_win_20: v => (v * 100).toFixed(0) + "%", night_sharpe_20: v => num(v)};
+    const withRef = document.getElementById("m7-ref").checked;
+    el.innerHTML = Object.keys(d.strategies).filter(k => withRef || MINE.includes(k)).map(k => {
+      const s = d.strategies[k], n = s.picks.length;
+      const status = n ? `${n}종목 동일비중 · 포트폴리오 다음 밤 ${s.portfolio_next_night == null ? "미확정" : `<span class="${sign(s.portfolio_next_night)}">${pct(s.portfolio_next_night, 2)}</span>`}`
+        : (k === "M3_regime_cash" && !d.regime_up ? "하락 레짐 → 전액 현금 관망" : "선정 종목 없음 → 현금");
+      const head = `<h3>${swatch(css(M7[k]))}${esc(m7d.strategies[k].name)} <span class="note">${status}</span></h3>`;
+      if (!n) return head;
+      return head + `<div class="scroll"><table><thead><tr><th class="l">종목</th>${FACTOR_COLS.map(([, h]) => `<th>${h}</th>`).join("")}<th>다음 밤 수익률</th></tr></thead><tbody>` +
+        s.picks.map(p => `<tr><td class="l">${esc(p.name)} (${esc(p.symbol)})</td>${FACTOR_COLS.map(([c]) => `<td>${p.factors[c] == null ? "-" : fmt[c](p.factors[c])}</td>`).join("")}
+        <td class="${sign(p.next_night_return)}">${p.next_night_return == null ? "미확정" : pct(p.next_night_return, 2)}</td></tr>`).join("") + "</tbody></table></div>";
+    }).join("");
+  } catch (e) { if (picksReq === req) { el.innerHTML = `<p class="err">${esc(e.message)}</p>`; note.textContent = ""; } }
 }
 
 async function m1() {
@@ -244,7 +399,7 @@ async function m3() {
     `<div><b>${swatch(color(k))}${esc(d.strategies[k])}</b>${ps.map(p => `${esc(p.name)}(${esc(p.symbol)})`).join(", ") || "후보 없음"}</div>`).join("");
 }
 
-show(["m1", "m2", "m3"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "m1");
+show(["m1", "m2", "m3", "m7"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "m7");
 </script>
 </body>
 </html>
