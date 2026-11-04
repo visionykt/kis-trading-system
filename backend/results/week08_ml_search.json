@@ -1,0 +1,227 @@
+{
+ "results": [
+  {
+   "model": "hgb",
+   "target": "rank",
+   "rows": 163494,
+   "sharpe": 6.5644192375277175,
+   "k": 3,
+   "filter": "none",
+   "regime": "none",
+   "no_gate_best": {
+    "sharpe": 6.5644192375277175,
+    "k": 3
+   },
+   "seconds": 3.4,
+   "walk_forward": {
+    "sharpe": 4.432510716956756,
+    "days": 1172,
+    "test_from": 2022
+   }
+  },
+  {
+   "model": "lgbm",
+   "target": "rank",
+   "rows": 163494,
+   "sharpe": 6.530909548749847,
+   "k": 3,
+   "filter": "none",
+   "regime": "none",
+   "no_gate_best": {
+    "sharpe": 6.530909548749847,
+    "k": 3
+   },
+   "seconds": 2.3,
+   "walk_forward": {
+    "sharpe": 4.2522661143852,
+    "days": 1172,
+    "test_from": 2022
+   }
+  },
+  {
+   "model": "rf",
+   "target": "rank",
+   "rows": 163494,
+   "sharpe": 6.180330821132908,
+   "k": 3,
+   "filter": "none",
+   "regime": "none",
+   "no_gate_best": {
+    "sharpe": 6.180330821132908,
+    "k": 3
+   },
+   "seconds": 27.2,
+   "walk_forward": {
+    "sharpe": 4.459030186494746,
+    "days": 1172,
+    "test_from": 2022
+   }
+  },
+  {
+   "model": "mlp",
+   "target": "rank",
+   "rows": 163494,
+   "sharpe": 5.4889199878396076,
+   "k": 3,
+   "filter": "양봉",
+   "regime": "none",
+   "no_gate_best": {
+    "sharpe": 5.322935673015847,
+    "k": 3
+   },
+   "seconds": 18.0
+  },
+  {
+   "model": "lgbm",
+   "target": "raw",
+   "rows": 163494,
+   "sharpe": 5.447082655211044,
+   "k": 5,
+   "filter": "none",
+   "regime": "none",
+   "no_gate_best": {
+    "sharpe": 5.447082655211044,
+    "k": 5
+   },
+   "seconds": 2.3
+  },
+  {
+   "model": "hgb",
+   "target": "raw",
+   "rows": 163494,
+   "sharpe": 5.354254310832406,
+   "k": 5,
+   "filter": "none",
+   "regime": "none",
+   "no_gate_best": {
+    "sharpe": 5.354254310832406,
+    "k": 5
+   },
+   "seconds": 2.5
+  },
+  {
+   "model": "rf",
+   "target": "raw",
+   "rows": 163494,
+   "sharpe": 5.1296680102540355,
+   "k": 5,
+   "filter": "none",
+   "regime": "none",
+   "no_gate_best": {
+    "sharpe": 5.1296680102540355,
+    "k": 5
+   },
+   "seconds": 37.7
+  },
+  {
+   "model": "ridge",
+   "target": "rank",
+   "rows": 163494,
+   "sharpe": 4.460343000501364,
+   "k": 3,
+   "filter": "양봉",
+   "regime": "none",
+   "no_gate_best": {
+    "sharpe": 3.967517983883423,
+    "k": 3
+   },
+   "seconds": 0.6
+  },
+  {
+   "model": "ridge",
+   "target": "raw",
+   "rows": 163494,
+   "sharpe": 4.229660116383655,
+   "k": 7,
+   "filter": "양봉",
+   "regime": "night40",
+   "no_gate_best": {
+    "sharpe": 3.7297610852590646,
+    "k": 5
+   },
+   "seconds": 0.5
+  },
+  {
+   "model": "mlp",
+   "target": "raw",
+   "rows": 163494,
+   "sharpe": 4.114124957780214,
+   "k": 5,
+   "filter": "양봉",
+   "regime": "none",
+   "no_gate_best": {
+    "sharpe": 3.757435412962003,
+    "k": 5
+   },
+   "seconds": 15.7
+  }
+ ],
+ "best": {
+  "model_name": "hgb",
+  "target": "rank",
+  "features": [
+   "close_pos",
+   "upper_shadow",
+   "body_ratio",
+   "vol_ratio",
+   "vol_surge_up",
+   "turnover_rank",
+   "ma20_gap",
+   "ret_5d",
+   "ret_20d",
+   "range_pct",
+   "r_day",
+   "gap_today",
+   "rsi_14",
+   "night_win_20",
+   "night_mean_20",
+   "night_sharpe_20",
+   "night_sharpe_60",
+   "mkt_night_20",
+   "mkt_ma20_gap",
+   "mkt_ma120_gap",
+   "rk_vol_ratio",
+   "rk_night_sharpe_20",
+   "rk_night_sharpe_60",
+   "rk_night_mean_20",
+   "rk_r_day",
+   "rk_ret_5d"
+  ],
+  "k": 3,
+  "filter": "none",
+  "regime": "none",
+  "cost": 0.001,
+  "train_range": [
+   "2020-01-02",
+   "2026-10-21"
+  ],
+  "feature_importance_top5": [
+   {
+    "feature": "upper_shadow",
+    "importance": 0.22529192283092103,
+    "kind": "순열 중요도"
+   },
+   {
+    "feature": "close_pos",
+    "importance": 0.1301461334323669,
+    "kind": "순열 중요도"
+   },
+   {
+    "feature": "rk_night_sharpe_60",
+    "importance": 0.10174534256732419,
+    "kind": "순열 중요도"
+   },
+   {
+    "feature": "r_day",
+    "importance": 0.07822289649224964,
+    "kind": "순열 중요도"
+   },
+   {
+    "feature": "turnover_rank",
+    "importance": 0.05612751964956817,
+    "kind": "순열 중요도"
+   }
+  ],
+  "saved_at": "2026-11-04T08:12:58"
+ }
+}

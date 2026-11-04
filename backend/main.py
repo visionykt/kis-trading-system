@@ -1,3 +1,4 @@
+import json
 import os
 import re
 from contextlib import asynccontextmanager
@@ -235,3 +236,14 @@ def backtest_mission07_picks(date: str = Query(pattern=r"^\d{8}$", description="
         return mission07.picks_on(res, pd.Timestamp(universe.parse_ymd(date)))
     except ValueError as err:
         raise HTTPException(status_code=422, detail=str(err))
+
+
+@app.get("/backtest/week08")
+def backtest_week08():
+    """Week 8: 비ML 최고 vs ML 최고 vs 벤치마크·샘플 A~D (2020-01-02 ~ 2026-10-21 고정, 왕복 0.10%, 분할 없음).
+
+    week08_report.py 가 만든 결과 파일을 그대로 돌려준다 (기간이 고정이라 매 요청 재계산하지 않는다)."""
+    path = backtest.RESULTS_DIR / "week08_leaderboard.json"
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="week08_leaderboard.json 이 없습니다. week08.py -> week08_ml.py -> week08_report.py 순서로 실행하세요.")
+    return JSONResponse(json.loads(path.read_text(encoding="utf-8")))

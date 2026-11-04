@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Week 6-7 Backtest</title>
+<title>Week 6-8 Backtest</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root {
@@ -68,16 +68,37 @@
 </head>
 <body>
 <main>
-  <h1>Week 6–7 · 낮 vs 밤(종가 배팅) 백테스트</h1>
+  <h1>Week 6–8 · 낮 vs 밤(종가 배팅) 백테스트</h1>
   <p class="sub"><a href="index.html" style="color:inherit">← 홈</a> · KIS 수정주가 일봉(FHKST03010100, FID_ORG_ADJ_PRC="0") · 2020-01 ~ · 수수료 표기가 없으면 제외 기준</p>
   <nav role="tablist">
-    <button role="tab" data-tab="m7" aria-selected="true">WEEK 07 · 최고 점수 챌린지</button>
+    <button role="tab" data-tab="m8" aria-selected="true">WEEK 08 · 비ML vs ML 샤프</button>
+    <button role="tab" data-tab="m7" aria-selected="false">WEEK 07 · 최고 점수 챌린지</button>
     <button role="tab" data-tab="m1" aria-selected="false">MISSION 01 · 삼성전자</button>
     <button role="tab" data-tab="m2" aria-selected="false">MISSION 02 · KOSPI 100</button>
     <button role="tab" data-tab="m3" aria-selected="false">MISSION 03 · Top-5 선택</button>
   </nav>
 
-  <section id="m7" class="on">
+  <section id="m8" class="on">
+    <div class="card warn"><h2>8주차 통일 규칙</h2>
+      <p class="note" id="m8-rules"></p></div>
+    <div class="tiles" id="m8-tiles"></div>
+    <div class="strat" id="m8-cards"></div>
+    <div class="card">
+      <div class="ctl"><label class="sel">왕복 거래비용 <select id="m8-cost"></select></label>
+        <label class="sel"><input type="checkbox" id="m8-ref" checked> 벤치마크·샘플 A~D 표시</label></div>
+      <h2>누적수익률 — 비ML 최고 vs ML 최고 <span class="note">(로그 스케일 · 비용은 보유일마다 차감 · 현금일 0%)</span></h2>
+      <div class="chart"><canvas id="m8-chart"></canvas></div></div>
+    <div class="card scroll"><h2>성과표 <span class="note" id="m8-board-note"></span></h2><table id="m8-table"></table></div>
+    <div class="card scroll"><h2>[비ML 최고] 종목 선정 근거 <span class="note">(어떤 팩터와 규칙으로 매일 어떤 종목이 뽑혔나)</span></h2><div id="m8-nonml"></div></div>
+    <div class="card scroll"><details><summary>비ML 탐색 상위 10개 <span class="note">(전 구간 샤프 기준 · 상위가 한 점이 아니라 고원 형태인지 확인)</span></summary><table id="m8-top10"></table></details></div>
+    <div class="card scroll"><h2>[ML 최고] 모델 · 중요 팩터</h2><div id="m8-ml"></div>
+      <h2 style="margin-top:14px">ML 모델 비교 <span class="note">(전 구간 학습·평가 샤프 / 해마다 과거만으로 학습한 walk-forward 참고치)</span></h2><table id="m8-models"></table></div>
+    <div class="card scroll"><h2>검증 · 미래참조 점검</h2><table id="m8-look"></table><p class="note" id="m8-look-note"></p></div>
+    <div class="card warn"><h2>해석 시 주의</h2>
+      <p class="note" id="m8-warn"></p></div>
+  </section>
+
+  <section id="m7">
     <div class="card">
       <div class="ctl">
         <label class="sel">기간 <input type="date" id="m7-start"> ~ <input type="date" id="m7-end"></label>
@@ -211,7 +232,7 @@ const loaded = {};
 async function load(tab) {
   if (loaded[tab]) return;
   loaded[tab] = true;
-  try { await ({m1, m2, m3, m7})[tab](); }
+  try { await ({m1, m2, m3, m7, m8})[tab](); }
   catch (e) { loaded[tab] = false; document.getElementById(tab).insertAdjacentHTML("afterbegin", `<p class="err card">불러오기 실패: ${esc(e.message)}</p>`); }
 }
 
@@ -230,6 +251,103 @@ const m7q = () => {
 };
 const m7cost = () => Number(document.getElementById("m7-cost").value);
 const m7net = b => b.net.find(n => Math.abs(n.cost - m7cost()) < 1e-12);
+
+const M8 = {KOSPI100_EW: "--base", A_momentum: "--q2", B_mean_reversion: "--s4", C_volume_surge: "--s5", D_rolling_edge: "--q4",
+            W8_NONML_BEST: "--s1", W8_ML_BEST: "--s2"};
+let m8d = null;
+const m8cost = () => Number(document.getElementById("m8-cost").value);
+const m8net = b => b.net.find(n => Math.abs(n.cost - m8cost()) < 1e-12);
+
+async function m8() {
+  const d = m8d = await get("/backtest/week08");
+  const cost = document.getElementById("m8-cost");
+  if (!cost.options.length) {
+    cost.innerHTML = d.costs.map(c => `<option value="${c}"${c === d.cost ? " selected" : ""}>${(c * 100).toFixed(2)}%</option>`).join("");
+    cost.onchange = m8Draw;
+    document.getElementById("m8-ref").onchange = m8Draw;
+  }
+  document.getElementById("m8-rules").innerHTML =
+    `기간 <b>${d.period.start} ~ ${d.period.end}</b> (${d.period.days}거래일, 팩터 워밍업용 2019년 말 ${d.warmup_days}일은 신호 계산에만 사용) · 학습/검증 <b>분할 없음</b> · 공식 비교 비용 <b>왕복 ${(d.cost * 100).toFixed(2)}%</b> · ` +
+    `샤프 = 일평균 ÷ 표준편차 × √252, 현금일(0%)도 ${d.period.days}일 모수에 포함 · 신호 = t 일 마감 팩터 → t+1 일 시가 매도 (shift(1))`;
+  m8Draw();
+  const ex = d.explain, st = d.strategies;
+  const nm = ex.W8_NONML_BEST, rc = nm.recipe;
+  const fcell = (f, v) => v == null ? "-" : ["vol_ratio", "vol_surge_up"].includes(f) ? num(v) + "x" : num(v, 2);
+  const compare = x => `<table><thead><tr><th class="l">팩터</th><th>선택된 종목 평균</th><th>100종목 평균</th></tr></thead><tbody>` +
+    Object.keys(x.avg_factors_picked).map(f => `<tr><td class="l">${esc(f)}</td><td>${fcell(f, x.avg_factors_picked[f])}</td><td>${fcell(f, x.avg_factors_universe[f])}</td></tr>`).join("") + "</tbody></table>";
+  const freq = x => x.frequent.map(q => `${esc(q.name)}(${q.days}일)`).join(", ");
+  const last = x => `<table><thead><tr><th class="l">종목</th>${Object.keys(x.last_picks[0]?.factors || {}).map(f => `<th>${esc(f)}</th>`).join("")}</tr></thead><tbody>` +
+    x.last_picks.map(p => `<tr><td class="l">${esc(p.name)} (${esc(p.symbol)})</td>${Object.entries(p.factors).map(([f, v]) => `<td>${fcell(f, v)}</td>`).join("")}</tr>`).join("") + "</tbody></table>";
+  document.getElementById("m8-nonml").innerHTML =
+    `<p><b>점수</b> = 같은 날 100종목 중 백분위 순위의 가중합 → <b>상위 ${rc.k}종목</b> 동일비중 · 후보 필터 <b>${esc(rc.filter)}</b> · 시장 레짐 <b>${esc(rc.regime)}</b> (${esc(rc.regime_text)})</p>` +
+    `<table><thead><tr><th class="l">팩터</th><th>가중치</th><th class="l">그룹</th><th class="l">수식</th><th class="l">가설(왜 넣었나)</th></tr></thead><tbody>` +
+    rc.factors.map(f => `<tr><td class="l">${esc(f.name)}</td><td>${f.weight}</td><td class="l">${esc(f.group)}</td><td class="l">${esc(f.formula)}</td><td class="l">${esc(f.hypothesis)}</td></tr>`).join("") + "</tbody></table>" +
+    `<p class="note">고른 종목의 다음 날 밤 평균 <b class="pos">${pct(nm.picked_next_night_mean, 2)}</b> vs 같은 날 100종목 평균 ${pct(nm.universe_next_night_mean, 2)} → 하루 <b class="pos">${pct(nm.edge_per_day, 2)}p</b> 초과 (매수한 ${nm.selected_days}일 기준)</p>` +
+    `<h3 style="font-size:14px">선택된 종목 vs 전체의 팩터 평균</h3>${compare(nm)}<p class="note">자주 뽑힌 종목: ${freq(nm)}</p>` +
+    `<h3 style="font-size:14px">마지막 신호일(${nm.last_signal_date}) 선정 종목</h3>${nm.last_picks.length ? last(nm) : '<p class="note">시장 레짐 필터로 쉬는 날(현금)</p>'}`;
+
+  const ml = d.ml, mx = ex.W8_ML_BEST, wf = ml.walk_forward;
+  const hyper = Object.entries(ml.hyper).map(([k, v]) => `${esc(k)}=${esc(JSON.stringify(v))}`).join(" · ");
+  const mlSharpe = d.board.find(b => b.key === "W8_ML_BEST").sharpe;
+  document.getElementById("m8-ml").innerHTML =
+    `<p><b>모델</b> ${esc(ml.model)} · <b>타깃</b> ${ml.target === "rank" ? "그날 밤 수익률의 같은 날 횡단면 순위(−0.5~0.5)" : "그날 밤 수익률(±10% 절단)"} · 입력 팩터 ${ml.features.length}개 · 학습 구간 ${esc(ml.train_range.join(" ~ "))} (분할 없음)</p>` +
+    `<p class="note">설정: ${hyper}</p>` +
+    `<p><b>매매 규칙</b> 예측 점수 상위 ${ml.k}종목 · 필터 ${esc(ml.filter)} · 레짐 ${esc(ml.regime)} · 저장 파일 <code>${esc(ml.model_file)}</code> (9주차 다른 기간 적용용: <code>week08_ml.evaluate_model</code>)</p>` +
+    `<table><thead><tr><th class="l">중요 팩터 상위 5</th><th>중요도</th><th class="l">비고</th></tr></thead><tbody>` +
+    ml.importance_top5.map(i => `<tr><td class="l">${esc(i.feature)}</td><td>${(i.importance * 100).toFixed(1)}%</td><td class="l">${esc(i.kind)}</td></tr>`).join("") + "</tbody></table>" +
+    (wf ? `<p class="note" style="border-left:3px solid var(--s4);padding-left:8px">전 구간으로 학습하고 같은 구간에서 평가한 샤프 <b>${num(mlSharpe)}</b> 는 규칙상의 공식 점수지만 <b>학습 데이터를 다시 맞힌 값</b>입니다. 같은 설정을 해마다 그 해 이전 데이터만으로 학습해 ${wf.test_from}년~ 평가한 walk-forward 샤프는 <b>${num(wf.sharpe)}</b> 입니다. 9주차(다른 기간 적용)에서 보게 될 수치는 후자에 가깝습니다.</p>` : "") +
+    `<p class="note">고른 종목의 다음 날 밤 평균 ${pct(mx.picked_next_night_mean, 2)} vs 100종목 평균 ${pct(mx.universe_next_night_mean, 2)} · 자주 뽑힌 종목: ${freq(mx)}</p>`;
+  table("m8-models", [{k: "model", h: "모델", l: true}, {k: "target", h: "타깃", l: true}, {k: "sharpe", h: "전 구간 샤프", f: v => num(v)},
+    {k: "k", h: "K"}, {k: "filter", h: "필터", l: true}, {k: "regime", h: "레짐", l: true}, {k: "walk_forward", h: "walk-forward 샤프", f: v => v ? num(v.sharpe) : "-"}], d.ml_models);
+  table("m8-top10", [{k: "rank", h: "#"}, {k: "sharpe", h: "전 구간 샤프", f: v => num(v, 3)}, {k: "h1", h: "앞 절반", f: v => num(v)}, {k: "h2", h: "뒤 절반", f: v => num(v)},
+    P("cum", "누적"), P("mdd", "MDD"), {k: "inv", h: "보유일"}, {k: "k", h: "K"}, {k: "regime", h: "레짐", l: true}, {k: "filter", h: "필터", l: true},
+    {k: "factors", h: "팩터(가중치)", l: true, f: (v, r) => v.map((f, i) => `${esc(f)}${r.weights[i] !== 1 ? "×" + r.weights[i] : ""}`).join(" + ")}],
+    d.nonml_top10.map((r, i) => ({...r, rank: i + 1})));
+  table("m8-look", [{k: "name", h: "전략", l: true}, {k: "ok", h: "cut 이후 데이터 교란 시 신호 불변", f: v => v ? '<span class="ok">✓ OK</span>' : '<span class="fail">✗ FAIL</span>'},
+    {k: "diff", h: "탐색엔진 vs Week 7 파이프라인 수익률 최대 오차", f: v => v.toExponential(1)}],
+    ["W8_NONML_BEST", "W8_ML_BEST"].map(k => ({name: st[k].name, ok: d.lookahead_check[k], diff: d.engine_crosscheck_max_abs_diff[k]})));
+  document.getElementById("m8-look-note").textContent = `교란 기준일 ${d.lookahead_cuts.join(", ")} · 샘플 A~D 와 벤치마크 수치는 박소현 7주차 자료와 같은 기준이라 일치한다 (샘플 C 3.21, D 2.36, 벤치마크 0.38)`;
+  document.getElementById("m8-warn").innerHTML =
+    "① 비ML·ML 모두 <b>2020~2026 전 구간을 보고</b> 고른/학습한 사후 최적화 결과다(규칙상 분할 없음). 비ML은 약 23만 개 조합 중 1위라 선택 편향이 있다 — 상위 20위가 모두 샤프 4.39~4.44인 고원이라 한 점만 운 좋게 뽑힌 것은 아니다. " +
+    "② 유니버스는 <b>현재</b> KOSPI 100 구성종목(생존편향). ③ 슬리피지·거래세는 없고, 거래량·양봉 팩터는 마감 동시호가까지 쓰므로 실제 15:20 에는 정확히 알 수 없다. " +
+    "④ ML 의 전 구간 샤프는 학습 데이터 재현이라 과대하다 — walk-forward 값을 함께 본다.";
+}
+
+function m8Draw() {
+  const d = m8d, c = m8cost(), withRef = document.getElementById("m8-ref").checked;
+  const keys = Object.keys(d.strategies).filter(k => withRef || d.strategies[k].group === "nonml" || d.strategies[k].group === "ml");
+  lineChart("m8-chart", d.curve.map(r => r.ts), keys.map(k => {
+    let eq = 1;
+    return {label: d.strategies[k].name, color: css(M8[k]), dash: !["nonml", "ml"].includes(d.strategies[k].group),
+            y: d.curve.map(r => (eq *= 1 + r[k] - (k === "KOSPI100_EW" || r["inv_" + k] === 1 ? c : 0)))};
+  }), {log: true});
+  const label = {sharpe: "Sharpe 1위", calmar: "Calmar 1위", cumulative_return: "수익률 1위"};
+  const tags = {};
+  Object.entries(d.best).forEach(([m, k]) => (tags[k] ??= []).push(label[m]));
+  const card = k => {
+    const b = d.board.find(x => x.key === k), m = m8net(b);
+    return `<div class="card"><h3>${swatch(css(M8[k]))}${esc(d.strategies[k].name)} ${(tags[k] || []).map(t => `<span class="tag best">${t}</span>`).join(" ")}</h3>
+      <p class="rule">${esc(d.strategies[k].criteria)}</p>
+      <div class="kv"><span>Sharpe <b>${num(m.sharpe)}</b></span><span>Calmar <b>${num(m.calmar, 0)}</b></span>
+      <span>누적 <b class="${sign(m.cumulative_return)}">${pct(m.cumulative_return, 0)}</b></span><span>MDD <b>${pct(m.mdd)}</b></span>
+      <span>승률(보유일) <b>${m.win_rate_invested == null ? "-" : (m.win_rate_invested * 100).toFixed(1) + "%"}</b></span><span>매매일 <b>${m.invested_days}</b></span></div></div>`;
+  };
+  document.getElementById("m8-cards").innerHTML = card("W8_NONML_BEST") + card("W8_ML_BEST");
+  const a = m8net(d.board.find(b => b.key === "W8_NONML_BEST")), b = m8net(d.board.find(x => x.key === "W8_ML_BEST"));
+  document.getElementById("m8-tiles").innerHTML = [
+    ["비ML 최고 Sharpe", num(a.sharpe), "7주차 우리 전략 3.70 → 개선"],
+    ["ML 최고 Sharpe (전 구간 학습)", num(b.sharpe), "walk-forward 참고치 " + (d.ml.walk_forward ? num(d.ml.walk_forward.sharpe) : "-")],
+    ["Sharpe 차이 (ML − 비ML)", (b.sharpe - a.sharpe >= 0 ? "+" : "") + (b.sharpe - a.sharpe).toFixed(2), "누적 " + pct(b.cumulative_return, 0) + " vs " + pct(a.cumulative_return, 0)],
+  ].map(([k, v, s_]) => `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${s_}</div></div>`).join("");
+  const rows = d.board.map(x => ({...m8net(x), key: x.key, name: x.name, h1: x.sharpe_first_half, h2: x.sharpe_second_half}));
+  table("m8-table", [
+    {k: "name", h: "전략", l: true, f: (v, r) => `<span style="display:inline-flex;gap:6px;align-items:center">${swatch(css(M8[r.key]))}${esc(v)}</span>`},
+    {k: "sharpe", h: "Sharpe ★", f: v => num(v)}, P("cumulative_return", "누적수익률"), P("cagr", "CAGR"), P("mdd", "MDD"), {k: "calmar", h: "Calmar", f: v => num(v, 0)},
+    {k: "win_rate", h: "승률(전체)", f: v => (v * 100).toFixed(1) + "%"}, {k: "win_rate_invested", h: "승률(보유일)", f: v => v == null ? "-" : (v * 100).toFixed(1) + "%"},
+    {k: "invested_days", h: "매매일수"}, {k: "h1", h: "Sharpe 앞절반", f: v => num(v)}, {k: "h2", h: "Sharpe 뒤절반", f: v => num(v)}], rows, true);
+  document.getElementById("m8-board-note").textContent =
+    `비용 ${(c * 100).toFixed(2)}% 기준 · 공식 비교는 ${(d.cost * 100).toFixed(2)}% · 앞/뒤 절반은 ${d.half_cut} 경계(안정성 확인용, 학습 분할 아님) · 열 이름을 누르면 정렬`;
+}
 
 async function m7() {
   const q = m7q();
@@ -399,7 +517,7 @@ async function m3() {
     `<div><b>${swatch(color(k))}${esc(d.strategies[k])}</b>${ps.map(p => `${esc(p.name)}(${esc(p.symbol)})`).join(", ") || "후보 없음"}</div>`).join("");
 }
 
-show(["m1", "m2", "m3", "m7"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "m7");
+show(["m1", "m2", "m3", "m7", "m8"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "m8");
 </script>
 </body>
 </html>

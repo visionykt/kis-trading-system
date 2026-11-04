@@ -6,3 +6,6 @@ pandas
 bcrypt
 PyJWT
 matplotlib
+scikit-learn
+lightgbm
+joblib

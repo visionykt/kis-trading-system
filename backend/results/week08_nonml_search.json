@@ -1,0 +1,1486 @@
+[
+ {
+  "sharpe": 4.44284603994673,
+  "factors": [
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   1.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 7,
+  "regime": "night40",
+  "cum": 102.73454424642436,
+  "mdd": -0.0859272559714438,
+  "h1": 4.357986979145546,
+  "h2": 4.72482431854354,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.432450351593921,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   2.0,
+   2.0,
+   2.0,
+   2.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 138.39902402725068,
+  "mdd": -0.0891636122971271,
+  "h1": 4.407425637636882,
+  "h2": 4.693519999322426,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.432001558725742,
+  "factors": [
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   1.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 7,
+  "regime": "night20",
+  "cum": 92.32350151095214,
+  "mdd": -0.0859272559714438,
+  "h1": 4.5181143799488925,
+  "h2": 4.5764061267324365,
+  "inv": 1219
+ },
+ {
+  "sharpe": 4.4288002253029255,
+  "factors": [
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   2.0,
+   2.0,
+   2.0,
+   2.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 136.615482155048,
+  "mdd": -0.08814206477661801,
+  "h1": 4.415625067918819,
+  "h2": 4.684124293981607,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.4265661084295695,
+  "factors": [
+   "vol_ratio",
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   1.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 7,
+  "regime": "night40",
+  "cum": 106.54501269548072,
+  "mdd": -0.09514821627593895,
+  "h1": 4.377578788089128,
+  "h2": 4.686540502097949,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.424520802191595,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   2.0,
+   1.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 5,
+  "regime": "night20",
+  "cum": 168.3929679453027,
+  "mdd": -0.1128623586129307,
+  "h1": 4.754384188936762,
+  "h2": 4.486538933025829,
+  "inv": 1219
+ },
+ {
+  "sharpe": 4.42083815139299,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   2.0,
+   1.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 5,
+  "regime": "night40",
+  "cum": 183.03934083770713,
+  "mdd": -0.11286235861293092,
+  "h1": 4.535263094240288,
+  "h2": 4.64021296966799,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.415429541025812,
+  "factors": [
+   "vol_ratio",
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   1.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 7,
+  "regime": "night20",
+  "cum": 94.94726141964071,
+  "mdd": -0.09514821627593906,
+  "h1": 4.453948212260939,
+  "h2": 4.5932221649445495,
+  "inv": 1219
+ },
+ {
+  "sharpe": 4.414557117017499,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 7,
+  "regime": "night40",
+  "cum": 109.0235010234269,
+  "mdd": -0.10357344229438148,
+  "h1": 4.302929418591847,
+  "h2": 4.723537284912286,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.406508292292579,
+  "factors": [
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60"
+  ],
+  "weights": [
+   2.0,
+   1.0,
+   1.0,
+   2.0
+  ],
+  "filter": "양봉",
+  "k": 7,
+  "regime": "night40",
+  "cum": 98.43341864715555,
+  "mdd": -0.09166426559723684,
+  "h1": 4.289223193589185,
+  "h2": 4.7124848840311415,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.401610059463151,
+  "factors": [
+   "vol_ratio",
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   1.0,
+   1.0,
+   2.0
+  ],
+  "filter": "양봉",
+  "k": 7,
+  "regime": "night40",
+  "cum": 96.78055089587855,
+  "mdd": -0.0911627202456804,
+  "h1": 4.348755571780813,
+  "h2": 4.656134023277496,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.398404564944103,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   2.0,
+   1.0,
+   2.0
+  ],
+  "filter": "양봉",
+  "k": 7,
+  "regime": "night40",
+  "cum": 103.92532453877276,
+  "mdd": -0.09498448585039132,
+  "h1": 4.4593959264012,
+  "h2": 4.584152117366932,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.397012408848656,
+  "factors": [
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60",
+   "r_day"
+  ],
+  "weights": [
+   2.0,
+   1.0,
+   2.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 119.26638447006101,
+  "mdd": -0.0881420647766179,
+  "h1": 4.470923763153521,
+  "h2": 4.5956556290222865,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.396081819901428,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   2.0,
+   1.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 128.1522753372183,
+  "mdd": -0.10320286003905765,
+  "h1": 4.420191427230563,
+  "h2": 4.6409601350959395,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.395392526925529,
+  "factors": [
+   "vol_ratio",
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60"
+  ],
+  "weights": [
+   1.0,
+   2.0,
+   2.0,
+   1.0,
+   2.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 121.11031260737855,
+  "mdd": -0.08955203947484114,
+  "h1": 4.3749847298827635,
+  "h2": 4.642075291254909,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.39378919795907,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 121.98219949719665,
+  "mdd": -0.10879206325460433,
+  "h1": 4.463322181950259,
+  "h2": 4.609452253124691,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.393261942749049,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   1.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 123.1119713063481,
+  "mdd": -0.09876716887477854,
+  "h1": 4.497205363762195,
+  "h2": 4.572492908261173,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.391053861689893,
+  "factors": [
+   "vol_ratio",
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20"
+  ],
+  "weights": [
+   1.0,
+   2.0,
+   1.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 7,
+  "regime": "night40",
+  "cum": 107.14963125689587,
+  "mdd": -0.10321070934918597,
+  "h1": 4.437112552943479,
+  "h2": 4.594970901474744,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.389720031716653,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   2.0,
+   2.0,
+   2.0,
+   2.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night20",
+  "cum": 120.22725305241661,
+  "mdd": -0.08885703250329746,
+  "h1": 4.520006593814054,
+  "h2": 4.52061004537404,
+  "inv": 1219
+ },
+ {
+  "sharpe": 4.389665622150107,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60"
+  ],
+  "weights": [
+   2.0,
+   1.0,
+   1.0,
+   2.0
+  ],
+  "filter": "양봉",
+  "k": 7,
+  "regime": "night40",
+  "cum": 95.44589634742547,
+  "mdd": -0.09512136008351602,
+  "h1": 4.262347472191361,
+  "h2": 4.688492154539404,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.389325751506725,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   2.0,
+   1.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 7,
+  "regime": "night40",
+  "cum": 104.07572615858004,
+  "mdd": -0.09184025780457272,
+  "h1": 4.390518512881111,
+  "h2": 4.622651180417173,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.388756460011646,
+  "factors": [
+   "vol_ratio",
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20"
+  ],
+  "weights": [
+   1.0,
+   2.0,
+   1.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 7,
+  "regime": "night20",
+  "cum": 97.50533435776674,
+  "mdd": -0.10321070934918597,
+  "h1": 4.499644481928181,
+  "h2": 4.5250870872783615,
+  "inv": 1219
+ },
+ {
+  "sharpe": 4.384966471308589,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20",
+   "r_day"
+  ],
+  "weights": [
+   2.0,
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 7,
+  "regime": "night40",
+  "cum": 101.19625935035563,
+  "mdd": -0.10382550812035007,
+  "h1": 4.309100334493244,
+  "h2": 4.638087844884438,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.383065477115735,
+  "factors": [
+   "vol_ratio",
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20"
+  ],
+  "weights": [
+   1.0,
+   2.0,
+   1.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 131.62348020941045,
+  "mdd": -0.10792580673979513,
+  "h1": 4.371478059082749,
+  "h2": 4.636602771143571,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.382337305541828,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   2.0,
+   1.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 7,
+  "regime": "night20",
+  "cum": 92.99467010880068,
+  "mdd": -0.09184025780457261,
+  "h1": 4.537010628890538,
+  "h2": 4.494949477036863,
+  "inv": 1219
+ },
+ {
+  "sharpe": 4.38231054210198,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20",
+   "night_mean_20"
+  ],
+  "weights": [
+   1.0,
+   2.0,
+   2.0,
+   1.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 5,
+  "regime": "night40",
+  "cum": 186.63112018916343,
+  "mdd": -0.1106620944176131,
+  "h1": 4.518075901452554,
+  "h2": 4.595698107855516,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.380855447185628,
+  "factors": [
+   "vol_ratio",
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60"
+  ],
+  "weights": [
+   1.0,
+   2.0,
+   1.0,
+   1.0,
+   2.0
+  ],
+  "filter": "양봉",
+  "k": 7,
+  "regime": "night40",
+  "cum": 96.55973075654532,
+  "mdd": -0.09644421298389882,
+  "h1": 4.370380883988708,
+  "h2": 4.607190221457284,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.38084581610463,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60"
+  ],
+  "weights": [
+   2.0,
+   1.0,
+   1.0,
+   2.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 120.86399580720571,
+  "mdd": -0.09411853473596976,
+  "h1": 4.398160546841722,
+  "h2": 4.616381416176945,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.380161002608876,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   2.0,
+   2.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 5,
+  "regime": "night40",
+  "cum": 165.6438108424432,
+  "mdd": -0.1106620944176131,
+  "h1": 4.548287830681774,
+  "h2": 4.563250269665428,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.379904387749326,
+  "factors": [
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   2.0,
+   2.0,
+   2.0,
+   2.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night20",
+  "cum": 117.34082946978691,
+  "mdd": -0.08814206477661801,
+  "h1": 4.518314070016283,
+  "h2": 4.507868181593834,
+  "inv": 1219
+ },
+ {
+  "sharpe": 4.379591880366688,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60",
+   "r_day"
+  ],
+  "weights": [
+   2.0,
+   1.0,
+   2.0,
+   2.0,
+   2.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 122.56038123585597,
+  "mdd": -0.09538533761811707,
+  "h1": 4.432759908092337,
+  "h2": 4.596803152580287,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.378222080175977,
+  "factors": [
+   "vol_ratio",
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   1.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 123.31597979570829,
+  "mdd": -0.10320286003905754,
+  "h1": 4.461827288900889,
+  "h2": 4.5846076682462735,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.377073929804277,
+  "factors": [
+   "vol_ratio",
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   2.0,
+   1.0,
+   2.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 124.60181417353179,
+  "mdd": -0.08930513866827505,
+  "h1": 4.302291866144286,
+  "h2": 4.672018002839773,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.374645863748197,
+  "factors": [
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20",
+   "r_day"
+  ],
+  "weights": [
+   2.0,
+   1.0,
+   2.0,
+   1.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 7,
+  "regime": "night40",
+  "cum": 103.70147486381585,
+  "mdd": -0.09626533800825743,
+  "h1": 4.406674546234896,
+  "h2": 4.576074367552519,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.3743012358333555,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60",
+   "night_win_20"
+  ],
+  "weights": [
+   1.0,
+   2.0,
+   1.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 126.65117578342486,
+  "mdd": -0.10180267421615719,
+  "h1": 4.360681994734198,
+  "h2": 4.648308972009864,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.372802748411407,
+  "factors": [
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60"
+  ],
+  "weights": [
+   2.0,
+   1.0,
+   1.0,
+   2.0
+  ],
+  "filter": "양봉",
+  "k": 7,
+  "regime": "night20",
+  "cum": 86.58014370680519,
+  "mdd": -0.08737895682356256,
+  "h1": 4.400848615185973,
+  "h2": 4.555192921446441,
+  "inv": 1219
+ },
+ {
+  "sharpe": 4.372546841509306,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   2.0,
+   2.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 120.1764134008639,
+  "mdd": -0.09186416241244943,
+  "h1": 4.404296507089732,
+  "h2": 4.5855311857467465,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.372125080684008,
+  "factors": [
+   "vol_ratio",
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   1.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 5,
+  "regime": "night40",
+  "cum": 159.54516866378566,
+  "mdd": -0.1106620944176131,
+  "h1": 4.544201811239437,
+  "h2": 4.547696311151696,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.370217337961248,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   2.0,
+   1.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night20",
+  "cum": 112.91379187531396,
+  "mdd": -0.10320286003905754,
+  "h1": 4.5603084619388365,
+  "h2": 4.484711304324217,
+  "inv": 1219
+ },
+ {
+  "sharpe": 4.3697687301012635,
+  "factors": [
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_mean_20",
+   "r_day"
+  ],
+  "weights": [
+   2.0,
+   1.0,
+   2.0,
+   1.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 126.4389610642899,
+  "mdd": -0.10120013830281838,
+  "h1": 4.4332848772223645,
+  "h2": 4.565343927425463,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.369727884027884,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   1.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night20",
+  "cum": 109.88171295937902,
+  "mdd": -0.09876716887477865,
+  "h1": 4.65379571850104,
+  "h2": 4.403120142194713,
+  "inv": 1219
+ },
+ {
+  "sharpe": 4.3695274750738,
+  "factors": [
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20"
+  ],
+  "weights": [
+   2.0,
+   1.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 117.90824704942688,
+  "mdd": -0.1029654579952678,
+  "h1": 4.410031215784099,
+  "h2": 4.590476795853441,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.368642666724245,
+  "factors": [
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20",
+   "r_day"
+  ],
+  "weights": [
+   2.0,
+   1.0,
+   2.0,
+   1.0,
+   2.0
+  ],
+  "filter": "양봉",
+  "k": 7,
+  "regime": "night40",
+  "cum": 102.1905747738541,
+  "mdd": -0.0924375958380449,
+  "h1": 4.4526946439835395,
+  "h2": 4.530947944677803,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.367774452027987,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60"
+  ],
+  "weights": [
+   2.0,
+   1.0,
+   1.0,
+   2.0
+  ],
+  "filter": "양봉",
+  "k": 7,
+  "regime": "night20",
+  "cum": 84.7087150275378,
+  "mdd": -0.09051713881705137,
+  "h1": 4.344757787049076,
+  "h2": 4.574429042682257,
+  "inv": 1219
+ },
+ {
+  "sharpe": 4.367749056467772,
+  "factors": [
+   "vol_ratio",
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   1.0,
+   1.0,
+   2.0
+  ],
+  "filter": "양봉",
+  "k": 7,
+  "regime": "night20",
+  "cum": 85.00667984708916,
+  "mdd": -0.09116272024568006,
+  "h1": 4.393950315083693,
+  "h2": 4.540224373061661,
+  "inv": 1219
+ },
+ {
+  "sharpe": 4.367540515649044,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   2.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 112.77483565984738,
+  "mdd": -0.08814206477661801,
+  "h1": 4.420690454241509,
+  "h2": 4.576818066814597,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.367246350919054,
+  "factors": [
+   "vol_ratio",
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   2.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 131.11909997467558,
+  "mdd": -0.10875350330579159,
+  "h1": 4.398680604043429,
+  "h2": 4.6106286986623335,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.366660387487815,
+  "factors": [
+   "vol_ratio",
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   2.0,
+   2.0,
+   2.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 121.31843086779129,
+  "mdd": -0.09186416241244932,
+  "h1": 4.3524020395217295,
+  "h2": 4.619863808206143,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.366485180728561,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 7,
+  "regime": "night20",
+  "cum": 93.6249355637573,
+  "mdd": -0.1035734422943817,
+  "h1": 4.436334824895751,
+  "h2": 4.534762179606591,
+  "inv": 1219
+ },
+ {
+  "sharpe": 4.366047617507927,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   2.0,
+   2.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 122.08363977365688,
+  "mdd": -0.09263534061723822,
+  "h1": 4.37892481933615,
+  "h2": 4.611170673881994,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.363797090564978,
+  "factors": [
+   "vol_ratio",
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_60",
+   "night_win_20"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   1.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night20",
+  "cum": 111.44139883859644,
+  "mdd": -0.10320286003905765,
+  "h1": 4.545299545977989,
+  "h2": 4.478313962628772,
+  "inv": 1219
+ },
+ {
+  "sharpe": 4.363330706018339,
+  "factors": [
+   "vol_ratio",
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_60",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   2.0,
+   1.0,
+   2.0,
+   1.0
+  ],
+  "filter": "none",
+  "k": 6,
+  "regime": "night40",
+  "cum": 128.97941641771519,
+  "mdd": -0.11921208300389152,
+  "h1": 4.515735477326195,
+  "h2": 4.496486515192263,
+  "inv": 1301
+ },
+ {
+  "sharpe": 4.363263967576522,
+  "factors": [
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60",
+   "r_day"
+  ],
+  "weights": [
+   2.0,
+   2.0,
+   2.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 7,
+  "regime": "night40",
+  "cum": 97.24030506250169,
+  "mdd": -0.08825680364290811,
+  "h1": 4.255267101658415,
+  "h2": 4.663560276216504,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.362328078711979,
+  "factors": [
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60",
+   "r_day"
+  ],
+  "weights": [
+   2.0,
+   1.0,
+   2.0,
+   2.0,
+   2.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 118.03012155435833,
+  "mdd": -0.08814206477661801,
+  "h1": 4.53622259716597,
+  "h2": 4.4852549029319295,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.361277227108106,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   2.0,
+   1.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 126.95809340264381,
+  "mdd": -0.10493035594024247,
+  "h1": 4.330825107105251,
+  "h2": 4.6225185248229606,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.3604211455662405,
+  "factors": [
+   "vol_ratio",
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60"
+  ],
+  "weights": [
+   1.0,
+   2.0,
+   1.0,
+   1.0,
+   2.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 118.90910036598518,
+  "mdd": -0.09800373695632048,
+  "h1": 4.356076713618943,
+  "h2": 4.606591197581036,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.360126450916636,
+  "factors": [
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   1.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 8,
+  "regime": "night40",
+  "cum": 77.71581738119234,
+  "mdd": -0.09620903106327694,
+  "h1": 4.2341751105451655,
+  "h2": 4.646246288565358,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.35992962071638,
+  "factors": [
+   "vol_ratio",
+   "vol_surge_up",
+   "turnover_rank",
+   "night_sharpe_60",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   2.0,
+   1.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 6,
+  "regime": "night40",
+  "cum": 120.90046577543684,
+  "mdd": -0.11693546767182328,
+  "h1": 4.497501030708786,
+  "h2": 4.503782602135437,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.359821910024209,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60",
+   "r_day"
+  ],
+  "weights": [
+   1.0,
+   1.0,
+   2.0,
+   2.0,
+   1.0
+  ],
+  "filter": "양봉",
+  "k": 7,
+  "regime": "night40",
+  "cum": 92.55766295900243,
+  "mdd": -0.08802205508761796,
+  "h1": 4.3192563921765394,
+  "h2": 4.622740766688151,
+  "inv": 1300
+ },
+ {
+  "sharpe": 4.35807814293357,
+  "factors": [
+   "vol_ratio",
+   "turnover_rank",
+   "night_sharpe_20",
+   "night_sharpe_60"
+  ],
+  "weights": [
+   2.0,
+   1.0,
+   1.0,
+   2.0
+  ],
+  "filter": "양봉",
+  "k": 5,
+  "regime": "night40",
+  "cum": 160.69478546916028,
+  "mdd": -0.11436403845203202,
+  "h1": 4.421103782631817,
+  "h2": 4.616142763899761,
+  "inv": 1300
+ }
+]
