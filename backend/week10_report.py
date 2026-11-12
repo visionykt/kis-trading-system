@@ -52,6 +52,41 @@ def seed_range(res, model, gate="none"):
     return f"{min(v):.2f} ~ {max(v):.2f}"
 
 
+def ablation_block() -> list[str]:
+    """시장 공통 변수 재투입 대조 실험(week10_ablation.py) 결과. 파일이 없으면 '미검증' 문구."""
+    path = nn_.RESULTS_DIR / "week10_ablation_mkt.json"
+    if not path.exists():
+        return ["- **해석(가설)**: 시장 공통 변수를 뺀 것이 날짜 암기를 막았을 가능성이 있으나 대조 실험을 하지 않아 인과는 검증되지 않았다.\n"]
+    a = json.loads(path.read_text(encoding="utf-8"))
+    off, on = a["baseline_no_mkt"], a["with_mkt"]
+    mn = lambda rs, seg: mean(r["report"][seg]["sharpe"] for r in rs)
+    per = lambda rs: " / ".join(f"{r['report']['test']['sharpe']:.2f}" for r in rs)
+    ep = lambda rs, e, k: mean(r["epoch_sharpe"][e][k] for r in rs)
+    B = []
+    B.append("\n**대조 실험 — 시장 공통 변수(`mkt_*`)를 다시 넣으면 붕괴가 나타나는가?** (`backend/week10_ablation.py`, `results/week10_ablation_mkt.json`)\n")
+    B.append(f"- 설계: Overfit_MLP(128×3, Dropout 0, wd 0, Early Stopping 없음, 60 에폭)를 위와 **완전히 같은 조건**(데이터·3단 분할·타깃·옵티마이저·시드 {a['seeds']})으로 두고 "
+             f"**입력만 17→20**으로 바꿨다. 추가한 3개는 `{', '.join(a['mkt_features'])}`(같은 날 모든 종목이 같은 값, **원값**, Train 구간 평균·표준편차로만 표준화).\n")
+    B.append("| 입력 | IS 샤프 | Val 샤프 | **OOS 샤프** | OOS 시드별 | 60에폭 Train 손실 |")
+    B.append("|---|---:|---:|---:|---|---:|")
+    for lab, rs in (("17 순위 피처 (기존, mkt 제외)", off), ("17 순위 피처 + mkt 3개 원값 (대조)", on)):
+        B.append(f"| {lab} | {mn(rs, 'train'):.2f} | {mn(rs, 'val'):.2f} | **{mn(rs, 'test'):.2f}** | {per(rs)} | {mean(r['history']['train_loss'][-1] for r in rs):.4f} |")
+    B.append("\n에폭별 시드평균 샤프 (IS / Val / OOS):\n")
+    B.append("| 에폭 | mkt 제외 | mkt 추가 |")
+    B.append("|---:|---|---|")
+    for e in ("1", "8", "20", "45", "60"):
+        f = lambda rs: " / ".join(f"{ep(rs, e, k):.2f}" for k in ("train", "val", "test"))
+        B.append(f"| {e} | {f(off)} | {f(on)} |")
+    gap_off, gap_on = mn(off, "train") - mn(off, "test"), mn(on, "train") - mn(on, "test")
+    B.append(f"\n- **결과**: mkt 를 넣자 IS 는 에폭마다 오르고({ep(on, '1', 'train'):.2f}→{ep(on, '60', 'train'):.2f}) OOS 는 내려갔다({ep(on, '1', 'test'):.2f}→{ep(on, '60', 'test'):.2f}). "
+             f"60에폭 OOS {mn(off, 'test'):.2f}→{mn(on, 'test'):.2f}(**{mn(on, 'test') - mn(off, 'test'):+.2f}**), IS−OOS 격차 {gap_off:+.2f}→{gap_on:+.2f}. "
+             f"3개 시드 모두에서 OOS 가 내려갔고 두 조건의 시드 범위는 겹치지 않는다. Train 손실도 더 낮아졌다 — 날짜를 외우기 시작했다는 신호다. 반면 mkt 가 없으면 IS·OOS 모두 유지되거나 소폭 오른다.")
+    B.append("- **해석**: 시장 공통 변수는 날짜를 식별하는 '바코드'로 작동해 비규제 신경망의 IS→OOS **X자 역전을 실제로 만들어 낸다**. 따라서 \"시장 공통 변수를 입력에서 뺀 것이 과적합 억제에 기여했다\"는 가설은 이 실험에서 **지지**된다.")
+    B.append("- **한계(과대해석 금지)**: ① 역전 폭은 9주차 깊은 LightGBM(IS 20.5→OOS 2.3)만큼 극단적이지 않다 — 완전한 '붕괴'가 아니라 OOS 가 약 1.3 낮아지는 정도다(MLP 와 트리는 암기 방식·용량이 다르다). "
+             "② 시드 3개·3단 분할 한 가지 구간에서만 확인했다. ③ **횡단면 순위 정규화의 단독 효과는 테스트하지 않았다**(원값 개별 팩터 대조 없음) — 두 처방 중 mkt 제거만 검증됐다. "
+             "④ mkt 는 3개만, 원값으로 넣었다. 다른 표현(순위·더 많은 변수)에서의 크기는 모른다.\n")
+    return B
+
+
 def build(res: dict) -> str:
     tw, wf = res["three_way"], res["walk_forward"]
     rng = res["meta"]["ranges"]
@@ -63,7 +98,11 @@ def build(res: dict) -> str:
     best_wf = {g: max((m for m in ORDER if GEN[m].startswith(g)), key=lambda m: walk(res, m)["sharpe"]) for g in ("비ML", "전통 ML", "NN")}
     for g, m in best_wf.items():
         w(f"- **{g} 최고** (Walk-Forward OOS 샤프): {NAME[m]} **{walk(res, m)['sharpe']:.2f}**")
-    w("- 신경망은 같은 입력으로 학습한 Ridge 를 **뚜렷하게 넘지 못했다** (GRU 는 동등, MLP 는 오히려 낮음). 비규제 대조군도 붕괴하지 않았다.\n")
+    w("- 신경망은 같은 입력으로 학습한 Ridge 를 **뚜렷하게 넘지 못했다** (GRU 는 동등, MLP 는 오히려 낮음). 비규제 대조군도 붕괴하지 않았다.")
+    if (nn_.RESULTS_DIR / "week10_ablation_mkt.json").exists():
+        w("- 대조 실험: 비규제 MLP 에 **시장 공통 변수를 다시 넣으면** IS 는 오르고 OOS 는 내려가는 X자 역전이 나타났다(3-①). 즉 \"시장 공통 변수 제거가 과적합 억제에 기여했다\"는 가설은 지지되며, 횡단면 순위 정규화의 단독 효과는 아직 미검증이다.\n")
+    else:
+        w("")
 
     w("## 1. 사용한 신경망 아키텍처 · 입력 · 규제\n")
     w("| 모델 | 구조 | 입력 텐서 | 총 파라미터 | 규제 |")
@@ -118,8 +157,7 @@ def build(res: dict) -> str:
     w("### ① IS→OOS 붕괴(X자 역전)가 재현되지 않았다 — 비규제 대조군도 OOS 가 유지됨\n")
     w(f"- Overfit_MLP(3.5만 파라미터, Dropout 0, weight decay 0, Early Stopping 없음)의 3단 분할 샤프는 IS {three_way(res, 'overfit_mlp', 'train')['sharpe']:.2f} / Val {three_way(res, 'overfit_mlp', 'val')['sharpe']:.2f} / **OOS {three_way(res, 'overfit_mlp', 'test')['sharpe']:.2f}**, Walk-Forward {ovf:.2f}. 9주차의 깊은 LightGBM(IS 20.5 → OOS 2.3)과 같은 붕괴가 없다.")
     w(f"- 에폭을 늘려도 Train 손실이 거의 내려가지 않는다 (시드0 Overfit_MLP: 1에폭 {h['train_loss'][0]:.4f} → 60에폭 {h['train_loss'][-1]:.4f}, Val {h['val_loss'][-1]:.4f}). 즉 이 입력으로는 **외울 거리 자체가 적다**.")
-    w("- **해석(가설)**: 9주차 붕괴의 주범이었던 시장 공통 변수(`MK20` 등)를 입력에서 빼고 모든 피처를 날짜별 횡단면 순위로 바꿨기 때문에, 모델이 '날짜 바코드'를 암기할 단서가 사라졌을 가능성이 크다. "
-      "다만 **이 요소만 바꿔 본 대조 실험(예: 시장 공통 변수를 다시 넣은 Overfit_MLP)은 하지 않았으므로 인과는 검증되지 않았다.** 11주차 토의용 후속 실험 후보로 남긴다.\n")
+    L.extend(ablation_block())
     w("### ② 시드 간 편차\n")
     w(f"- Walk-Forward 샤프 시드별 범위: MLP {min(sd('mlp')):.2f}~{max(sd('mlp')):.2f} · GRU {min(sd('gru')):.2f}~{max(sd('gru')):.2f} · Overfit_MLP {min(sd('overfit_mlp')):.2f}~{max(sd('overfit_mlp')):.2f}. 시드 하나의 폭(약 0.2~0.4)이 GRU·Overfit_MLP·Ridge 사이의 평균 차이(0.1 안팎)보다 크다.")
     w("- 따라서 한 번의 학습 결과로 모델 우열을 말하면 안 된다. 시드 3개는 최소한이며, 더 엄밀하게는 10개 이상이 필요하다.\n")
@@ -141,8 +179,8 @@ def build(res: dict) -> str:
     w("- 체크포인트(`backend/models/week10_best_nn.pt`)는 테스트가 아닌 **Val 샤프**로 골랐다 (선택 편향 방지).\n")
 
     w("## 5. 재현 · 파일\n")
-    w("```bash\n# 컨테이너(kis-backend) 안에서\npython week10_nn.py --seeds 3        # 학습·평가 -> results/week10_nn_results.json, models/week10_best_nn.pt (약 33분, CPU)\npython week10_nn.py --curves         # 시드0 일별 수익률(누적곡선용) -> results/week10_curves.json\npython week10_db.py                  # DB(w10_*) 저장\npython -m pytest tests/test_week10_dataset.py\n```\n")
-    w("| 파일 | 설명 |\n|---|---|\n| `backend/week10_dataset.py` | 누수 없는 2D/3D 데이터셋 · 3단 분할 · Walk-Forward 구간 · 백테스트 헬퍼 |\n| `backend/week10_nn.py` | MLP/GRU/Overfit_MLP 학습, 기준선(룰베이스·Ridge·HistGB), 평가 |\n| `backend/week10_db.py` | DB 저장(`w10_models/metrics/history/daily`) · API 페이로드 |\n| `backend/main.py` | `GET /backtest/week10` |\n| `frontend/backtest.html` | WEEK 10 탭(`#m10`) |\n| `backend/results/week10_dashboard.png` | 대시보드 캡처 |")
+    w("```bash\n# 컨테이너(kis-backend) 안에서\npython week10_nn.py --seeds 3        # 학습·평가 -> results/week10_nn_results.json, models/week10_best_nn.pt (약 33분, CPU)\npython week10_nn.py --curves         # 시드0 일별 수익률(누적곡선용) -> results/week10_curves.json\npython week10_db.py                  # DB(w10_*) 저장\npython week10_ablation.py            # 시장 공통 변수 재투입 대조 실험 (약 2분) -> results/week10_ablation_mkt.json\npython -m pytest tests/test_week10_dataset.py\n```\n")
+    w("| 파일 | 설명 |\n|---|---|\n| `backend/week10_dataset.py` | 누수 없는 2D/3D 데이터셋 · 3단 분할 · Walk-Forward 구간 · 백테스트 헬퍼 |\n| `backend/week10_nn.py` | MLP/GRU/Overfit_MLP 학습, 기준선(룰베이스·Ridge·HistGB), 평가 |\n| `backend/week10_ablation.py` | 대조 실험: 비규제 MLP 에 시장 공통 변수(`mkt_*`) 재투입 |\n| `backend/week10_db.py` | DB 저장(`w10_models/metrics/history/daily`) · API 페이로드 |\n| `backend/main.py` | `GET /backtest/week10` |\n| `frontend/backtest.html` | WEEK 10 탭(`#m10`) |\n| `backend/results/week10_dashboard.png` | 대시보드 캡처 |")
     return "\n".join(L) + "\n"
 
 

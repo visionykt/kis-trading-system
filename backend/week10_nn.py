@@ -67,9 +67,9 @@ class GRUNet(nn.Module):
 
 
 class OverfitMLP(nn.Module):
-    def __init__(self, h: int = 128):
+    def __init__(self, h: int = 128, f: int = F):
         super().__init__()
-        self.net = nn.Sequential(nn.Linear(F, h), nn.GELU(), nn.Linear(h, h), nn.GELU(), nn.Linear(h, h), nn.GELU(), nn.Linear(h, 1))
+        self.net = nn.Sequential(nn.Linear(f, h), nn.GELU(), nn.Linear(h, h), nn.GELU(), nn.Linear(h, h), nn.GELU(), nn.Linear(h, 1))
 
     def forward(self, x):
         return self.net(x).squeeze(-1)
