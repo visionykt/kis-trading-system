@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Week 6-8 Backtest</title>
+<title>Week 6-10 Backtest</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root {
@@ -68,17 +68,42 @@
 </head>
 <body>
 <main>
-  <h1>Week 6–8 · 낮 vs 밤(종가 배팅) 백테스트</h1>
+  <h1>Week 6–10 · 낮 vs 밤(종가 배팅) 백테스트</h1>
   <p class="sub"><a href="index.html" style="color:inherit">← 홈</a> · KIS 수정주가 일봉(FHKST03010100, FID_ORG_ADJ_PRC="0") · 2020-01 ~ · 수수료 표기가 없으면 제외 기준</p>
   <nav role="tablist">
-    <button role="tab" data-tab="m8" aria-selected="true">WEEK 08 · 비ML vs ML 샤프</button>
+    <button role="tab" data-tab="m10" aria-selected="true">WEEK 10 · 뉴럴 네트워크</button>
+    <button role="tab" data-tab="m8" aria-selected="false">WEEK 08 · 비ML vs ML 샤프</button>
     <button role="tab" data-tab="m7" aria-selected="false">WEEK 07 · 최고 점수 챌린지</button>
     <button role="tab" data-tab="m1" aria-selected="false">MISSION 01 · 삼성전자</button>
     <button role="tab" data-tab="m2" aria-selected="false">MISSION 02 · KOSPI 100</button>
     <button role="tab" data-tab="m3" aria-selected="false">MISSION 03 · Top-5 선택</button>
   </nav>
 
-  <section id="m8" class="on">
+    <section id="m10" class="on">
+    <div class="card warn"><h2>10주차 통일 규칙 · 뉴럴 네트워크 개별 실습</h2>
+      <p class="note" id="m10-rules"></p></div>
+    <div class="tiles" id="m10-tiles"></div>
+    <div class="card"><h2>누적수익률 비교 — 룰베이스 vs 전통 ML vs 뉴럴 네트워크 <span class="note" id="m10-chart-note"></span></h2>
+      <div class="ctl"><label class="sel">구간 <select id="m10-view">
+          <option value="wf">Walk-Forward OOS (2022 ~ 2026.10, 연도별 확장 학습)</option>
+          <option value="oos">3단 분할 OOS (2025.01 ~ 2026.10, 2023까지 학습)</option>
+          <option value="all">3단 분할 전 구간 (IS | Val | OOS 경계 표시)</option></select></label>
+        <span class="note">곡선은 레짐 게이트 없음 기준 (게이트 비교는 아래 표)</span></div>
+      <div class="chart"><canvas id="m10-chart"></canvas></div></div>
+    <div class="card scroll"><h2>3단 분할 성과 <span class="note">Train 2020~2023(IS) · Val 2024 · OOS 2025.01~2026.10 · 왕복 0.10% · Top-5 · 신경망은 시드 3개 평균</span></h2>
+      <div class="ctl"><label class="sel">레짐 게이트 <select id="m10-gate"></select></label></div>
+      <table id="m10-three"></table></div>
+    <div class="card scroll"><h2>연도별 Walk-Forward OOS 성과 <span class="note">해마다 그 해 이전 데이터만으로 재학습(마지막 6개월=Val) · 2022 ~ 2026.10 · 연도 열은 연도별 샤프</span></h2>
+      <table id="m10-wf"></table></div>
+    <div class="card"><h2>신경망 아키텍처 요약</h2><div class="strat" id="m10-arch"></div></div>
+    <div class="card"><h2>Epoch별 Train / Val Huber 손실 <span class="note" id="m10-loss-note"></span></h2>
+      <div class="ctl"><label class="sel">모델 <select id="m10-lm"></select></label>
+        <label class="sel">학습 <select id="m10-lr"></select></label></div>
+      <div class="chart" style="height:300px"><canvas id="m10-loss"></canvas></div></div>
+    <div class="card warn"><h2>해석 시 주의</h2><p class="note" id="m10-warn"></p></div>
+  </section>
+
+  <section id="m8">
     <div class="card warn"><h2>8주차 통일 규칙</h2>
       <p class="note" id="m8-rules"></p></div>
     <div class="tiles" id="m8-tiles"></div>
@@ -232,7 +257,7 @@ const loaded = {};
 async function load(tab) {
   if (loaded[tab]) return;
   loaded[tab] = true;
-  try { await ({m1, m2, m3, m7, m8})[tab](); }
+  try { await ({m1, m2, m3, m7, m8, m10})[tab](); }
   catch (e) { loaded[tab] = false; document.getElementById(tab).insertAdjacentHTML("afterbegin", `<p class="err card">불러오기 실패: ${esc(e.message)}</p>`); }
 }
 
@@ -517,7 +542,154 @@ async function m3() {
     `<div><b>${swatch(color(k))}${esc(d.strategies[k])}</b>${ps.map(p => `${esc(p.name)}(${esc(p.symbol)})`).join(", ") || "후보 없음"}</div>`).join("");
 }
 
-show(["m1", "m2", "m3", "m7", "m8"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "m8");
+// ---------------------------------------------------------------- WEEK 10
+const M10_ORDER = ["rule_best", "ridge", "hgb", "mlp", "gru", "overfit_mlp"];
+const M10_COLOR = {rule_best: "--base", ridge: "--s4", hgb: "--s5", mlp: "--s1", gru: "--s3", overfit_mlp: "--s2"};
+const M10_GEN = {rule: "비ML 룰베이스", trad_ml: "전통 ML", nn: "뉴럴 네트워크"};
+let m10d = null, m10idx = {};
+const m10m = (model, proto, seg, gate = "none", seed = -1) => m10idx[[model, proto, seg, gate, seed].join("|")];
+const m10title = k => m10d.models.find(m => m.model === k)?.title || k;
+const m10gen = k => m10d.models.find(m => m.model === k)?.generation;
+const m10seedRange = (model, proto, seg, gate, key) => {
+  const v = [0, 1, 2].map(s => m10m(model, proto, seg, gate, s)?.[key]).filter(x => x != null);
+  return v.length > 1 ? `${num(Math.min(...v))}~${num(Math.max(...v))}` : "-";
+};
+
+async function m10() {
+  const d = m10d = await get("/backtest/week10");
+  m10idx = {};
+  d.metrics.forEach(r => { m10idx[[r.model, r.protocol, r.segment, r.gate, r.seed].join("|")] = r; });
+  const order = M10_ORDER.filter(k => d.models.some(m => m.model === k));
+  const R = d.ranges, hg = d.headline_gate;
+  document.getElementById("m10-rules").innerHTML =
+    `KOSPI 100 종가배팅: t 일 종가 매수 → t+1 일 시가 매도, 매일 예측 상위 <b>Top-5</b> 동일비중, <b>왕복 0.10%</b>, 현금일 포함 연율화 샤프 · ` +
+    `입력 = 종목별 팩터 17개의 <b>날짜별 횡단면 백분위 순위(-0.5~+0.5)</b> (스케일러 fit 없음, 시장 공통 팩터 제외) · 타깃 = 시장 중립 초과수익률 · ` +
+    `3단 분할: Train ${R.train[0].slice(0, 7)}~${R.train[1].slice(0, 7)} / Val ${R.val[0].slice(0, 4)} / OOS ${R.test[0].slice(0, 7)}~${R.test[1]}`;
+
+  // 세대별 Walk-Forward 1위 타일
+  document.getElementById("m10-tiles").innerHTML = Object.keys(M10_GEN).map(g => {
+    const ms = order.filter(k => m10gen(k) === g);
+    const best = ms.map(k => [k, m10m(k, "walk_forward", "overall")]).filter(x => x[1]).sort((a, b) => b[1].sharpe - a[1].sharpe)[0];
+    if (!best) return "";
+    const [k, r] = best;
+    return `<div class="tile"><div class="k">${swatch(css(M10_COLOR[k]))}${M10_GEN[g]} · Walk-Forward OOS 샤프 1위</div><div class="v">${num(r.sharpe)}</div>` +
+      `<div class="d">${esc(m10title(k))} · 누적 ${pct(r.cumulative_return, 0)} · MDD ${pct(r.mdd)}</div></div>`;
+  }).join("");
+
+  document.getElementById("m10-view").onchange = m10Draw;
+  m10Draw();
+
+  const gate = document.getElementById("m10-gate");
+  gate.innerHTML = `<option value="none">없음</option><option value="${hg}">${hg} (KOSPI100 지수가 120일선 아래면 쉼)</option>`;
+  gate.onchange = m10Three;
+  m10Three();
+
+  const years = ["2022", "2023", "2024", "2025", "2026"];
+  const wfRow = (k, g) => {
+    const o = m10m(k, "walk_forward", "overall", g);
+    if (!o) return "";
+    const nnk = m10gen(k) === "nn";
+    return `<tr><td class="l">${swatch(css(M10_COLOR[k]))}${esc(m10title(k))}</td>` +
+      `<td><b>${num(o.sharpe)}</b></td><td class="${sign(o.cumulative_return)}">${pct(o.cumulative_return, 0)}</td><td class="${sign(o.mdd)}">${pct(o.mdd)}</td><td>${pct(o.win_rate)}</td><td>${num(o.calmar, 1)}</td><td>${o.invested_days}/${o.days}</td>` +
+      years.map(y => `<td>${num(m10m(k, "walk_forward", y, g)?.sharpe)}</td>`).join("") +
+      `<td>${nnk ? m10seedRange(k, "walk_forward", "overall", g, "sharpe") : "-"}</td></tr>`;
+  };
+  document.getElementById("m10-wf").innerHTML =
+    `<thead><tr><th class="l">모델 (신경망은 시드 3개 평균)</th><th>샤프</th><th>누적</th><th>MDD</th><th>승률(보유일)</th><th>칼마</th><th>매매일/전체</th>` +
+    years.map(y => `<th>${y}</th>`).join("") + `<th>시드별 샤프 범위</th></tr></thead><tbody>` +
+    `<tr><td class="l" colspan="${8 + years.length}" style="color:var(--ink-2)"><b>게이트 없음</b></td></tr>` + order.map(k => wfRow(k, "none")).join("") +
+    `<tr><td class="l" colspan="${8 + years.length}" style="color:var(--ink-2)"><b>레짐 게이트 ${esc(hg)} 적용</b> (사전 고정, 사후 선택 아님)</td></tr>` + order.map(k => wfRow(k, hg)).join("") + "</tbody>";
+
+  document.getElementById("m10-arch").innerHTML = d.models.filter(m => m.generation === "nn").sort((a, b) => M10_ORDER.indexOf(a.model) - M10_ORDER.indexOf(b.model)).map(m => {
+    const h = m.hyper;
+    return `<div class="card"><h3>${swatch(css(M10_COLOR[m.model]))}${esc(m.title)}</h3><p class="rule">${esc(m.arch)}</p>` +
+      `<div class="kv"><span>입력 <b>${esc(m.input_shape)}</b></span><span>총 파라미터 <b>${m.params.toLocaleString("ko-KR")}</b></span></div>` +
+      `<p class="note">AdamW lr ${h.lr} · weight decay <b>${h.weight_decay}</b> · batch ${h.batch} · Huber(δ=1, y/σ_train)<br>` +
+      `${h.early_stopping_on ? "Early Stopping: Val 손실 patience 5 · 최적 에폭 복원 · 최대 " + h.max_epochs + " 에폭" : "<b>Early Stopping 없음</b> · 고정 " + h.max_epochs + " 에폭 · Dropout 0"} · 시드 ${h.seeds.join(",")}</p></div>`;
+  }).join("");
+
+  const lm = document.getElementById("m10-lm"), lr = document.getElementById("m10-lr");
+  const nnm = order.filter(k => d.history.some(h => h.model === k));
+  lm.innerHTML = nnm.map(k => `<option value="${k}">${esc(m10title(k))}</option>`).join("");
+  const fillRuns = () => {
+    const hs = d.history.filter(h => h.model === lm.value);
+    lr.innerHTML = hs.map((h, i) => `<option value="${i}">${h.protocol === "three_way" ? "3단 분할 · 시드 " + h.seed : "Walk-Forward " + h.fold + "년 테스트 폴드 · 시드 " + h.seed}</option>`).join("");
+    m10Loss();
+  };
+  lm.onchange = fillRuns; lr.onchange = m10Loss;
+  fillRuns();
+
+  document.getElementById("m10-warn").innerHTML =
+    "① 신경망 샤프는 시드에 따라 흔들린다(시드별 범위 열 참고) — 모델 간 차이가 시드 간 차이보다 작으면 우열을 말할 수 없다. " +
+    "② 이번 실험은 시장 공통 팩터를 입력에서 뺐고 횡단면 순위로 정규화했다. 과적합 대조군(Overfit_MLP)이 붕괴하지 않은 것은 이 설계가 날짜 암기를 막았을 가능성을 보여 주지만, 그 요소만 바꿔 본 대조 실험은 아직 하지 않았다. " +
+    "③ 유니버스는 현재 KOSPI 100 구성종목(생존편향)이고 슬리피지·거래세는 없다. ④ 레짐 게이트(ma120)는 사전에 고정했으며 사후 선택하지 않았다. " +
+    "⑤ 누적곡선의 신경망은 시드 0 한 개라 표의 시드평균 샤프와 약간 다르다.";
+}
+
+function m10Draw() {
+  const d = m10d, view = document.getElementById("m10-view").value;
+  const proto = view === "wf" ? "walk_forward" : "three_way";
+  const cs = d.curves[proto];
+  if (!cs) { document.getElementById("m10-chart-note").textContent = "곡선 데이터 없음 (week10_nn.py --curves 후 week10_db.py)"; return; }
+  const keys = M10_ORDER.filter(k => cs[k]);
+  let labels = cs[keys[0]].dates, from = 0;
+  if (view === "oos") from = labels.findIndex(t => t >= d.ranges.test[0]);
+  labels = labels.slice(from);
+  const series = keys.map(k => {
+    const c = cs[k].cum, base = 1 + (from > 0 ? c[from - 1] : 0);
+    return {label: m10title(k), color: css(M10_COLOR[k]), dash: k === "rule_best" || k === "overfit_mlp", y: c.slice(from).map(v => (1 + v) / base)};
+  });
+  document.getElementById("m10-chart-note").textContent = "(로그 축 · 신경망은 시드 0)";
+  lineChart("m10-chart", labels, series, {log: true});
+  if (view === "all") {
+    const ch = charts["m10-chart"], b = [d.ranges.val[0], d.ranges.test[0]].map(t => labels.findIndex(x => x >= t));
+    ch.config.plugins = [{id: "split", afterDraw(c) {
+      const {ctx, chartArea: a, scales: {x}} = c;
+      ctx.save(); ctx.strokeStyle = css("--muted"); ctx.setLineDash([4, 4]); ctx.fillStyle = css("--ink-2"); ctx.font = "12px system-ui";
+      [["IS (Train)", a.left + 6], ["Val", x.getPixelForValue(b[0]) + 6], ["OOS", x.getPixelForValue(b[1]) + 6]].forEach(([t, px]) => ctx.fillText(t, px, a.top + 14));
+      b.forEach(i => { const px = x.getPixelForValue(i); ctx.beginPath(); ctx.moveTo(px, a.top); ctx.lineTo(px, a.bottom); ctx.stroke(); });
+      ctx.restore();
+    }}];
+    ch.update();
+  }
+}
+
+function m10Three() {
+  const d = m10d, g = document.getElementById("m10-gate").value;
+  const segs = [["train", "IS (Train)"], ["val", "Val"], ["test", "OOS (Test)"]];
+  const order = M10_ORDER.filter(k => d.models.some(m => m.model === k));
+  const rows = order.map(k => segs.map(([s, lab], i) => {
+    const r = m10m(k, "three_way", s, g);
+    if (!r) return "";
+    const nnk = m10gen(k) === "nn";
+    return `<tr${i === 0 ? ' style="border-top:2px solid var(--line)"' : ""}><td class="l">${i === 0 ? swatch(css(M10_COLOR[k])) + esc(m10title(k)) + ` <span class="tag">${M10_GEN[m10gen(k)]}</span>` : ""}</td>` +
+      `<td class="l">${lab}</td><td><b>${num(r.sharpe)}</b></td><td class="${sign(r.cumulative_return)}">${pct(r.cumulative_return, 0)}</td><td class="${sign(r.mdd)}">${pct(r.mdd)}</td><td>${pct(r.win_rate)}</td><td>${num(r.calmar, 1)}</td><td>${r.invested_days}</td>` +
+      `<td>${nnk ? m10seedRange(k, "three_way", s, g, "sharpe") : "-"}</td></tr>`;
+  }).join("")).join("");
+  document.getElementById("m10-three").innerHTML =
+    `<thead><tr><th class="l">모델</th><th class="l">구간</th><th>샤프</th><th>누적수익률</th><th>MDD</th><th>승률(보유일)</th><th>칼마</th><th>매매일</th><th>시드별 샤프 범위</th></tr></thead><tbody>${rows}</tbody>`;
+}
+
+function m10Loss() {
+  const d = m10d, lm = document.getElementById("m10-lm").value;
+  const h = d.history.filter(x => x.model === lm)[Number(document.getElementById("m10-lr").value)];
+  if (!h) return;
+  charts["m10-loss"]?.destroy();
+  const ink2 = css("--ink-2"), line = css("--line"), n = h.train.length;
+  const ds = (label, data, color) => ({label, data, borderColor: color, backgroundColor: color, borderWidth: 2, tension: 0,
+    pointRadius: data.map((_, i) => i + 1 === h.best_epoch ? 6 : 0), pointStyle: "rectRot", pointHoverRadius: 4});
+  charts["m10-loss"] = new Chart(document.getElementById("m10-loss"), {
+    type: "line", data: {labels: Array.from({length: n}, (_, i) => i + 1), datasets: [ds("Train 손실", h.train, css("--s1")), ds("Val 손실", h.val, css("--s2"))]},
+    options: {responsive: true, maintainAspectRatio: false, animation: false, interaction: {mode: "index", intersect: false},
+      plugins: {legend: {position: "top", align: "start", labels: {color: ink2, boxWidth: 12, boxHeight: 2}},
+                tooltip: {callbacks: {label: c => ` ${c.dataset.label}: ${c.parsed.y.toFixed(4)}`}}},
+      scales: {x: {title: {display: true, text: "Epoch", color: ink2}, ticks: {color: ink2, maxTicksLimit: 12}, grid: {display: false}},
+               y: {grid: {color: line}, border: {display: false}, ticks: {color: ink2, callback: v => v.toFixed(3)}}}},
+  });
+  document.getElementById("m10-loss-note").textContent = `(${n} 에폭 실행 · ◆ = Val 최소 에폭 ${h.best_epoch}${d.models.find(m => m.model === lm).hyper.early_stopping_on ? " (가중치 복원)" : " — 조기 종료 없음, 참고용"} · 손실은 y/σ_train 스케일)`;
+}
+
+show(["m1", "m2", "m3", "m7", "m8", "m10"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "m10");
 </script>
 </body>
 </html>

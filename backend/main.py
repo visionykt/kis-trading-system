@@ -247,3 +247,15 @@ def backtest_week08():
     if not path.exists():
         raise HTTPException(status_code=404, detail="week08_leaderboard.json 이 없습니다. week08.py -> week08_ml.py -> week08_report.py 순서로 실행하세요.")
     return JSONResponse(json.loads(path.read_text(encoding="utf-8")))
+
+
+@app.get("/backtest/week10")
+def backtest_week10():
+    """Week 10: 룰베이스 vs 전통 ML(Ridge·HistGB) vs 뉴럴 네트워크(MLP·GRU·Overfit_MLP) — DB(w10_*) 에 저장된 IS/OOS/Walk-Forward 결과.
+
+    week10_nn.py -> week10_nn.py --curves -> week10_db.py 순서로 실행하면 채워진다."""
+    import week10_db
+    try:
+        return JSONResponse(week10_db.payload())
+    except psycopg.errors.UndefinedTable:
+        raise HTTPException(status_code=404, detail="w10_* 테이블이 없습니다. week10_nn.py -> week10_nn.py --curves -> week10_db.py 순서로 실행하세요.")

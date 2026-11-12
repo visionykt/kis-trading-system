@@ -5,6 +5,7 @@
 !/backend/
 !/frontend/
 !/.env.example
+!/WEEK10_NN_REPORT.md
 
 # ===== 민감 정보 (어디서든 무시) =====
 .env

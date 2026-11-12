@@ -169,6 +169,12 @@ def summarize(bt: dict) -> dict:
             "invested_days": int(m["invested_days"]), "days": int(bt["days"])}
 
 
+def net_curve(data, S: np.ndarray, start: str | None = None, end: str | None = None) -> np.ndarray:
+    """일별 순수익률(왕복 0.10% 차감, 현금일 0) — 누적수익률 곡선용. 게이트 없음."""
+    bt = data.backtest(S, start, end, ds.TOP_K, "none")
+    return bt["r"] - ds.COST * bt["inv"]
+
+
 def period_report(data, S, ranges: dict, gate: str = "none") -> dict:
     return {k: summarize(data.backtest(S, a, b, ds.TOP_K, gate)) for k, (a, b) in ranges.items()}
 
@@ -194,7 +200,7 @@ def sk_fit_predict(name: str, tr, others: list) -> list[np.ndarray]:
 
 # ------------------------------------------------------------------ 방식 A: 3단 분할
 
-def run_three_way(data, seeds: list[int], log=print) -> tuple[dict, dict]:
+def run_three_way(data, seeds: list[int], log=print, collect: dict | None = None) -> tuple[dict, dict]:
     out, keep = {}, {}
     ranges = ds.THREE_WAY
     sets = {m: data.three_way(m) for m in ("2D", "3D")}
@@ -217,6 +223,8 @@ def run_three_way(data, seeds: list[int], log=print) -> tuple[dict, dict]:
 
             model, hist = fit(name, T[mode]["train"], T[mode]["val"], seed, cb)
             S = score_matrix(data, [(sets[mode][k], predict(model, T[mode][k].X)) for k in ("train", "val", "test")])
+            if collect is not None and seed == seeds[0]:
+                collect.setdefault("three_way", {})[name] = net_curve(data, S)
             rep = {"none": period_report(data, S, ranges, "none"), HEADLINE_GATE: period_report(data, S, ranges, HEADLINE_GATE)}
             runs.append({"seed": seed, "params": n_params(model), "report": rep, "history": hist, **({"epoch_sharpe": snaps} if snaps else {})})
             r = rep["none"]
@@ -230,16 +238,20 @@ def run_three_way(data, seeds: list[int], log=print) -> tuple[dict, dict]:
     return out, keep
 
 
-def baselines_three_way(data, log=print) -> dict:
+def baselines_three_way(data, log=print, collect: dict | None = None) -> dict:
     ranges = ds.THREE_WAY
     s2 = data.three_way("2D")
     out = {}
     rule, cfg = rule_baseline(data)
+    if collect is not None:
+        collect.setdefault("three_way", {})["rule_best"] = net_curve(data, rule)
     out["rule_best"] = {"desc": w8.describe(cfg), "params": 0, "own_gate": {"gate": cfg["regime"], **period_report(data, rule, ranges, cfg["regime"])},
                         "none": period_report(data, rule, ranges, "none"), HEADLINE_GATE: period_report(data, rule, ranges, HEADLINE_GATE)}
     for name in ("ridge", "hgb"):
         preds = sk_fit_predict(name, s2["train"], [s2["train"], s2["val"], s2["test"]])
         S = score_matrix(data, list(zip((s2["train"], s2["val"], s2["test"]), preds)))
+        if collect is not None:
+            collect.setdefault("three_way", {})[name] = net_curve(data, S)
         out[name] = {"none": period_report(data, S, ranges, "none"), HEADLINE_GATE: period_report(data, S, ranges, HEADLINE_GATE)}
         r = out[name]["none"]
         log(f"  {name:12} · 샤프 IS {r['train']['sharpe']:.2f} Val {r['val']['sharpe']:.2f} OOS {r['test']['sharpe']:.2f}")
@@ -250,7 +262,7 @@ def baselines_three_way(data, log=print) -> dict:
 
 # ------------------------------------------------------------------ 방식 B: 연도별 확장형 Walk-Forward
 
-def run_walk_forward(data, seeds: list[int], log=print) -> dict:
+def run_walk_forward(data, seeds: list[int], log=print, collect: dict | None = None) -> dict:
     plan = data.walk_forward_plan()
     folds = {m: data.walk_forward(m) for m in ("2D", "3D")}
     lo, hi = plan[0]["test"][0], plan[-1]["test"][1]
@@ -280,6 +292,8 @@ def run_walk_forward(data, seeds: list[int], log=print) -> dict:
                 h[fold["year"]] = hist
             mats.append(S)
             hists.append(h)
+        if collect is not None:
+            collect.setdefault("walk_forward", {})[name] = net_curve(data, mats[0], lo, hi)
         per_seed = finish({f"seed{s}": S for s, S in zip(seeds, mats)})
         out["models"][name] = {"params": n_params(spec["cls"]()), "seeds": per_seed,
                                "mean_sharpe_overall": {g: round(float(np.mean([per_seed[f"seed{s}"][g]["overall"]["sharpe"] for s in seeds])), 3) for g in gates},
@@ -291,17 +305,48 @@ def run_walk_forward(data, seeds: list[int], log=print) -> dict:
     # 기준선
     rule, cfg = rule_baseline(data)
     base = {"rule_best": finish({"rule": rule})["rule"]}
+    if collect is not None:
+        collect.setdefault("walk_forward", {})["rule_best"] = net_curve(data, rule, lo, hi)
     for name in ("ridge", "hgb"):
         S = np.full(data.cube.shape[:2], np.nan)
         for fold in folds["2D"]:
             te = fold["test"]
             S[te.t, te.i] = sk_fit_predict(name, fold["train"], [te])[0]
         base[name] = finish({name: S})[name]
+        if collect is not None:
+            collect.setdefault("walk_forward", {})[name] = net_curve(data, S, lo, hi)
     out["baselines"] = base
     for n, v in base.items():
         log(f"  WF {n:12} OOS 샤프 none {v['none']['overall']['sharpe']:.2f} · {HEADLINE_GATE} {v[HEADLINE_GATE]['overall']['sharpe']:.2f}")
     out["period"] = [lo, hi]
     return out
+
+
+# ------------------------------------------------------------------ 누적곡선용 일별 수익률
+
+def save_curves(data, collect: dict, three: dict, wf: dict) -> None:
+    """모델별 일별 순수익률(게이트 없음, 시드 0)을 저장하고, 본 결과 JSON(시드 0)과 샤프가 같은지 대조한다."""
+    ref = json.loads(RESULT_PATH.read_text(encoding="utf-8"))
+    lo, hi = wf["period"]
+    a, b = data.day_range(lo, hi)
+    out = {"dates": {"three_way": [str(d.date()) for d in data.days], "walk_forward": [str(d.date()) for d in data.days[a:b + 1]]},
+           "returns": {k: {m: np.round(v, 6).tolist() for m, v in d.items()} for k, d in collect.items()}, "checks": {}}
+    sh = lambda r: float(r.mean() / r.std(ddof=1) * np.sqrt(252))
+    for m in collect["walk_forward"]:
+        r = np.asarray(collect["walk_forward"][m])
+        want = (ref["walk_forward"]["models"][m]["seeds"]["seed0"]["none"]["overall"]["sharpe"] if m in ref["walk_forward"]["models"]
+                else ref["walk_forward"]["baselines"][m]["none"]["overall"]["sharpe"])
+        out["checks"][f"wf:{m}"] = {"curve_sharpe": round(sh(r), 3), "json_sharpe": want, "match": abs(sh(r) - want) < 0.01}
+    for m in collect["three_way"]:
+        r = np.asarray(collect["three_way"][m])
+        out["checks"][f"3way_full:{m}"] = {"curve_sharpe": round(sh(r), 3)}
+    path = RESULTS_DIR / "week10_curves.json"
+    path.write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
+    bad = [k for k, v in out["checks"].items() if v.get("match") is False]
+    print(f"\n저장: {path} · 본 결과(시드0) 샤프 재현 {'전부 일치' if not bad else '불일치: ' + str(bad)}")
+    for k, v in out["checks"].items():
+        if k.startswith("wf:"):
+            print(f"  {k:18} 곡선 {v['curve_sharpe']:.3f} / JSON {v['json_sharpe']:.3f}")
 
 
 # ------------------------------------------------------------------ 메인
@@ -320,23 +365,29 @@ def save_checkpoint(keep: dict, sigma: float) -> dict:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--seeds", type=int, default=3)
+    ap.add_argument("--curves", action="store_true", help="시드 0 만 재학습해 일별 수익률(누적곡선용)을 results/week10_curves.json 에 저장. 본 결과 JSON/체크포인트는 건드리지 않는다")
     ap.add_argument("--quick", action="store_true", help="에폭을 줄여 동작만 확인")
     a = ap.parse_args()
     if a.quick:
         for s in SPECS.values():
             s["epochs"] = 4
-    seeds = list(range(a.seeds))
+    seeds = [0] if a.curves else list(range(a.seeds))
+    collect: dict | None = {} if a.curves else None
     t_all = time.time()
     data = ds.build()
     print(f"torch {torch.__version__} · 평가 {data.days[0].date()} ~ {data.days[-1].date()} · 시드 {seeds} · 헤드라인 게이트 {HEADLINE_GATE}")
     print("\n=== 방식 A: 3단 분할 ===")
-    three, keep = run_three_way(data, seeds)
+    three, keep = run_three_way(data, seeds, collect=collect)
     sigma = three.pop("_sigma")
-    base3 = baselines_three_way(data)
-    best = save_checkpoint(keep, sigma)
-    print(f"  체크포인트: {best}")
+    base3 = baselines_three_way(data, collect=collect)
+    if not a.curves:
+        best = save_checkpoint(keep, sigma)
+        print(f"  체크포인트: {best}")
     print("\n=== 방식 B: 연도별 확장형 Walk-Forward ===")
-    wf = run_walk_forward(data, seeds)
+    wf = run_walk_forward(data, seeds, collect=collect)
+    if a.curves:
+        save_curves(data, collect, three, wf)
+        return
     res = {"meta": {"saved_at": datetime.now().isoformat(timespec="seconds"), "torch": torch.__version__, "seeds": seeds,
                     "cost_roundtrip": ds.COST, "top_k": ds.TOP_K, "features": ds.FEATURES, "seq_len": ds.SEQ_LEN,
                     "headline_gate": HEADLINE_GATE, "ranges": ds.THREE_WAY,
