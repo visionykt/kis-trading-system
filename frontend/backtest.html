@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Week 6-10 Backtest</title>
+<title>Week 6-11 Backtest</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root {
@@ -68,10 +68,11 @@
 </head>
 <body>
 <main>
-  <h1>Week 6–10 · 낮 vs 밤(종가 배팅) 백테스트</h1>
+  <h1>Week 6–11 · 낮 vs 밤(종가 배팅) 백테스트</h1>
   <p class="sub"><a href="index.html" style="color:inherit">← 홈</a> · KIS 수정주가 일봉(FHKST03010100, FID_ORG_ADJ_PRC="0") · 2020-01 ~ · 수수료 표기가 없으면 제외 기준</p>
   <nav role="tablist">
-    <button role="tab" data-tab="m10" aria-selected="true">WEEK 10 · 뉴럴 네트워크</button>
+    <button role="tab" data-tab="m11" aria-selected="true">WEEK 11 · 조기 종료 교정·강건성</button>
+    <button role="tab" data-tab="m10" aria-selected="false">WEEK 10 · 뉴럴 네트워크</button>
     <button role="tab" data-tab="m8" aria-selected="false">WEEK 08 · 비ML vs ML 샤프</button>
     <button role="tab" data-tab="m7" aria-selected="false">WEEK 07 · 최고 점수 챌린지</button>
     <button role="tab" data-tab="m1" aria-selected="false">MISSION 01 · 삼성전자</button>
@@ -79,7 +80,33 @@
     <button role="tab" data-tab="m3" aria-selected="false">MISSION 03 · Top-5 선택</button>
   </nav>
 
-    <section id="m10" class="on">
+      <section id="m11" class="on">
+    <div class="card warn"><h2>11주차 · 조기 종료 기준 교정(Val 손실 → Val 일별 IC) + 강건성 검증</h2>
+      <p class="note" id="m11-rules"></p></div>
+    <div class="tiles" id="m11-tiles"></div>
+    <div class="card"><h2>공통 조건 <span class="note">표 A·B에 적용</span></h2>
+      <div class="ctl"><label class="sel">구간 <select id="m11-seg"></select></label>
+        <label class="sel">레짐 게이트 <select id="m11-gate"></select></label>
+        <label class="sel">Top-K <select id="m11-k"><option value="5">5</option><option value="7">7</option></select></label>
+        <span class="note">왕복 0.10% · 일별 횡단면 순위 입력 · 신경망 = 시드 평균</span></div></div>
+    <div class="card scroll"><h2>A. 교정 전 / 후 비교 <span class="note">종료 기준만 다르다 (타깃·피처·구조·손실·분할 동일)</span></h2>
+      <table id="m11-corr"></table></div>
+    <div class="card scroll"><h2>B. 5시드 GRU · 시드 앙상블 · Ridge+GRU 앙상블 · 기준선</h2>
+      <table id="m11-b"></table></div>
+    <div class="card scroll"><h2>C. 거래비용 민감도 (왕복 0~30bp) <span class="note">Top-5 · 샤프와 누적수익률</span></h2>
+      <div class="ctl"><label class="sel">평가 <select id="m11-cproto"><option value="three_way|test">3단 분할 OOS (2025.01~)</option><option value="walk_forward|overall">Walk-Forward OOS (2022~)</option></select></label>
+        <label class="sel">게이트 <select id="m11-cgate"></select></label></div>
+      <table id="m11-cost"></table></div>
+    <div class="card scroll"><h2>D. 체결 가정 (상한가·거래정지 미체결) <span class="note">없음 = 기존 가정 · backfill = 다음 순위로 대체 · cash = 미체결 몫은 현금</span></h2>
+      <table id="m11-fill"></table><p class="note" id="m11-fillnote"></p></div>
+    <div class="card scroll"><h2>E. Placebo 검증 <span class="note">횡단면 셔플 = 날짜별 점수를 무작위로 섞음 · 시간 이동 = 점수 행렬을 시간축으로 이동 · p = 실제 샤프 이상인 비율</span></h2>
+      <div class="ctl"><label class="sel">게이트 <select id="m11-pgate"></select></label></div>
+      <table id="m11-placebo"></table></div>
+    <div class="card scroll"><h2>F. 피처 다중공선성 (VIF) · 재현 확인</h2><div id="m11-feat"></div></div>
+    <div class="card warn"><h2>해석 시 주의</h2><p class="note" id="m11-warn"></p></div>
+  </section>
+
+  <section id="m10">
     <div class="card warn"><h2>10주차 통일 규칙 · 뉴럴 네트워크 개별 실습</h2>
       <p class="note" id="m10-rules"></p></div>
     <div class="tiles" id="m10-tiles"></div>
@@ -257,7 +284,7 @@ const loaded = {};
 async function load(tab) {
   if (loaded[tab]) return;
   loaded[tab] = true;
-  try { await ({m1, m2, m3, m7, m8, m10})[tab](); }
+  try { await ({m1, m2, m3, m7, m8, m10, m11})[tab](); }
   catch (e) { loaded[tab] = false; document.getElementById(tab).insertAdjacentHTML("afterbegin", `<p class="err card">불러오기 실패: ${esc(e.message)}</p>`); }
 }
 
@@ -542,6 +569,113 @@ async function m3() {
     `<div><b>${swatch(color(k))}${esc(d.strategies[k])}</b>${ps.map(p => `${esc(p.name)}(${esc(p.symbol)})`).join(", ") || "후보 없음"}</div>`).join("");
 }
 
+// ---------------------------------------------------------------- WEEK 11
+let m11d = null, m11i = {};
+const M11_GATE = {none: "없음", ma120: "ma120 (지수 120일선)", night40: "night40 (야간 40일 레짐)"};
+const m11q = (section, variant, model, proto, seg, gate, k, cost = 10, fill = "none", seed = -1) => m11i[[section, variant, model, proto, seg, gate, k, cost, fill, seed].join("|")];
+const M11_NAME = {mlp: "MLP", gru: "GRU", mlp_ens: "MLP 5시드 앙상블", gru_ens: "GRU 5시드 앙상블", ens_ridge_gru: "Ridge+GRU 앙상블", gru_ens5: "GRU 5시드 앙상블",
+  mlp_ens5: "MLP 5시드 앙상블", ridge: "Ridge", hgb: "HistGB", rule_k5: "룰베이스 (K=5)", rule_k7: "룰베이스 (K=7)"};
+const m11Cells = r => r ? `<td><b>${num(r.sharpe)}</b></td><td class="${sign(r.cumulative_return)}">${pct(r.cumulative_return, 0)}</td><td class="${sign(r.mdd)}">${pct(r.mdd)}</td><td>${num(r.ic, 4)}</td><td>${num(r.ic_ir, 3)}</td>` : '<td colspan="5">-</td>';
+const m11range = (get1, seeds) => { const v = seeds.map(get1).filter(x => x != null); return v.length > 1 ? `${num(Math.min(...v))}~${num(Math.max(...v))}` : "-"; };
+
+async function m11() {
+  const d = m11d = await get("/backtest/week11");
+  m11i = {};
+  const c = d.metrics.cols;
+  d.metrics.rows.forEach(a => { const r = Object.fromEntries(c.map((k, j) => [k, a[j]])); m11i[[r.section, r.variant, r.model, r.protocol, r.segment, r.gate, r.k, r.cost_bp, r.fill, r.seed].join("|")] = r; });
+  const cfg = d.config;
+  document.getElementById("m11-rules").innerHTML =
+    `10주차 신경망은 <b>Val Huber 손실</b>로 조기 종료했지만 우리가 돈 버는 기준은 <b>일별 횡단면 순위 상관(IC)</b>이다. 종료 기준만 <b>Val 일별 Spearman IC 평균 최대</b>(최소 ${cfg.early_stop_ic.min_epochs} 에폭 보장·patience ${cfg.early_stop_ic.patience}·최적 에폭 복원)로 바꿔 다시 학습했다. ` +
+    `교정 전 = 손실 종료(시드 ${cfg.loss_seeds.length}개), 교정 후 = IC 종료(시드 ${cfg.ic_seeds.length}개). 규칙: t 일 종가 매수 → t+1 일 시가 매도, 동일비중 Top-K, 현금일 포함 연율화 샤프, 기본 왕복 0.10%. ` +
+    `앙상블 = ${esc(cfg.ensemble)} · 저장 ${esc(cfg.saved_at)}`;
+
+  const segs = [["three_way|test", "3단 분할 OOS (2025.01~2026.10)"], ["three_way|val", "3단 분할 Val (2024)"], ["three_way|train", "3단 분할 Train (2020~2023, IS)"],
+    ["walk_forward|overall", "Walk-Forward OOS 전체 (2022~2026.10)"], ...["2022", "2023", "2024", "2025", "2026"].map(y => ["walk_forward|" + y, "Walk-Forward " + y])];
+  const sel = document.getElementById("m11-seg");
+  sel.innerHTML = segs.map(([v, t]) => `<option value="${v}">${t}</option>`).join("");
+  sel.value = "walk_forward|overall";
+  const gates = Object.entries(M11_GATE);
+  for (const id of ["m11-gate", "m11-cgate", "m11-pgate"]) document.getElementById(id).innerHTML = gates.filter(([g]) => id === "m11-gate" || g !== "night40").map(([g, t]) => `<option value="${g}">${t}</option>`).join("");
+  for (const id of ["m11-seg", "m11-gate", "m11-k"]) document.getElementById(id).onchange = m11AB;
+  document.getElementById("m11-cproto").onchange = document.getElementById("m11-cgate").onchange = m11Cost;
+  document.getElementById("m11-pgate").onchange = m11Placebo;
+  m11AB(); m11Cost(); m11Fill(); m11Placebo(); m11Feat();
+
+  const t = (label, r, sub) => r ? `<div class="tile"><div class="k">${label}</div><div class="v">${num(r.sharpe)}</div><div class="d">${sub} · 누적 ${pct(r.cumulative_return, 0)} · MDD ${pct(r.mdd)}</div></div>` : "";
+  const W = (sec, v, m) => m11q(sec, v, m, "walk_forward", "overall", "none", 5);
+  document.getElementById("m11-tiles").innerHTML =
+    t("GRU · 교정 전 (손실 종료)", W("correction", "loss", "gru"), "WF OOS 샤프 · 3시드 평균") + t("GRU · 교정 후 (IC 종료)", W("correction", "ic", "gru"), "WF OOS 샤프 · 5시드 평균") +
+    t("Ridge+GRU 앙상블", W("ensemble", "ic", "ens_ridge_gru"), "WF OOS 샤프") + t("Ridge", W("baseline", "-", "ridge"), "WF OOS 샤프") + t("룰베이스 K=5", W("baseline", "-", "rule_k5"), "WF OOS 샤프");
+
+  document.getElementById("m11-warn").innerHTML =
+    "① 시드 앙상블·Ridge+GRU 앙상블은 사전에 정한 단순 평균(일별 순위 평균)이며 가중치를 사후에 조정하지 않았다. ② 교정 후 시드는 5개, 교정 전은 3개라서 같은 3시드(0~2)끼리의 비교(IC 종료 3시드)를 표 A에 함께 두었다. " +
+    "③ 시드별 범위가 모델 간 차이보다 크면 우열을 말할 수 없다. ④ 비용·체결·Placebo는 K=5, 게이트 없음/ma120 기준이다. ⑤ 유니버스는 현재 KOSPI 100 구성종목(생존편향)이고 슬리피지·거래세는 없다. " +
+    "⑥ 상한가·거래정지 필터는 종가 등락률 ≥ +29% 와 거래량 0 으로 근사한 것이며 실제 체결 가능성을 보장하지 않는다.";
+}
+
+function m11AB() {
+  const [proto, seg] = document.getElementById("m11-seg").value.split("|"), g = document.getElementById("m11-gate").value, k = Number(document.getElementById("m11-k").value);
+  const q = (sec, v, m, sd = -1) => m11q(sec, v, m, proto, seg, g, k, 10, "none", sd);
+  const row = (label, r, extra = "") => `<tr><td class="l">${label}</td>${m11Cells(r)}<td>${extra}</td></tr>`;
+  const head = `<thead><tr><th class="l">모델 / 종료 기준</th><th>샤프</th><th>누적</th><th>MDD</th><th>IC</th><th>IC IR</th><th>시드별 샤프 범위</th></tr></thead>`;
+  const rng = (v, m, n) => m11range(sd => q("correction", v, m, sd)?.sharpe, Array.from({length: n}, (_, i) => i));
+  let body = "";
+  for (const m of ["mlp", "gru"]) {
+    body += row(`<b>${M11_NAME[m]}</b> · 교정 전 (Val 손실, 3시드)`, q("correction", "loss", m), rng("loss", m, 3));
+    body += row(`<b>${M11_NAME[m]}</b> · 교정 후 (Val IC, 5시드)`, q("correction", "ic", m), rng("ic", m, 5));
+    body += row(`<b>${M11_NAME[m]}</b> · 교정 후 (같은 시드 0~2 만)`, q("correction", "ic_s012", m), rng("ic_s012", m, 3));
+  }
+  document.getElementById("m11-corr").innerHTML = head + "<tbody>" + body + "</tbody>";
+  let b = "";
+  for (let s = 0; s < 5; s++) b += row(`GRU · IC 종료 · 시드 ${s}`, q("correction", "ic", "gru", s));
+  b += row("<b>GRU 5시드 앙상블 (IC 종료)</b>", q("correction", "ic", "gru_ens"));
+  b += row("GRU 3시드 앙상블 (손실 종료)", q("correction", "loss", "gru_ens"));
+  b += row("MLP 5시드 앙상블 (IC 종료)", q("correction", "ic", "mlp_ens"));
+  b += row("<b>Ridge + GRU 앙상블 (IC 종료 GRU)</b>", q("ensemble", "ic", "ens_ridge_gru"));
+  b += row("Ridge + GRU 앙상블 (손실 종료 GRU, 참고)", q("ensemble", "loss", "ens_ridge_gru"));
+  b += row("Ridge", q("baseline", "-", "ridge"));
+  b += row("HistGB", q("baseline", "-", "hgb"));
+  b += row(`룰베이스 (K=${k})`, q("baseline", "-", "rule_k" + k));
+  document.getElementById("m11-b").innerHTML = head.replace("<th>시드별 샤프 범위</th>", "<th></th>") + "<tbody>" + b + "</tbody>";
+}
+
+function m11Cost() {
+  const [proto, seg] = document.getElementById("m11-cproto").value.split("|"), g = document.getElementById("m11-cgate").value;
+  const costs = m11d.config.costs_bp, ms = ["ens_ridge_gru", "gru_ens5", "mlp_ens5", "ridge", "rule_k5"];
+  document.getElementById("m11-cost").innerHTML = `<thead><tr><th class="l">모델</th>${costs.map(c => `<th>${c}bp 샤프</th><th>${c}bp 누적</th>`).join("")}</tr></thead><tbody>` +
+    ms.map(m => `<tr><td class="l">${M11_NAME[m]}</td>` + costs.map(c => { const r = m11q("cost", "ic", m, proto, seg, g, 5, c); return r ? `<td><b>${num(r.sharpe)}</b></td><td class="${sign(r.cumulative_return)}">${pct(r.cumulative_return, 0)}</td>` : "<td>-</td><td>-</td>"; }).join("") + "</tr>").join("") + "</tbody>";
+}
+
+function m11Fill() {
+  const ms = ["ens_ridge_gru", "gru_ens5", "mlp_ens5", "ridge", "rule_k5"], fills = [["none", "없음"], ["backfill", "backfill"], ["cash", "cash"]];
+  const protos = [["three_way|test", "3단 OOS"], ["walk_forward|overall", "Walk-Forward"]];
+  document.getElementById("m11-fill").innerHTML = `<thead><tr><th class="l">모델</th><th class="l">게이트</th>` + protos.flatMap(([, p]) => fills.map(([, f]) => `<th>${p} · ${f}</th>`)).join("") + `</tr></thead><tbody>` +
+    ms.flatMap(m => ["none", "ma120"].map((g, i) => `<tr><td class="l">${i ? "" : M11_NAME[m]}</td><td class="l">${g}</td>` +
+      protos.flatMap(([pv]) => { const [p, s] = pv.split("|"); return fills.map(([f]) => { const r = m11q("fill", "ic", m, p, s, g, 5, 10, f); return r ? `<td>${num(r.sharpe)} <span class="note">(${pct(r.cumulative_return, 0)})</span></td>` : "<td>-</td>"; }); }).join("") + "</tr>")).join("") + "</tbody>";
+  const fs = m11d.fill_stats || [];
+  document.getElementById("m11-fillnote").innerHTML = fs.filter(x => x.model === "ens_ridge_gru").map(x =>
+    `${x.protocol === "three_way" ? "3단 OOS" : "Walk-Forward"}: 전체 종목-일 ${x.cells.toLocaleString("ko-KR")} 중 상한가 마감 ${x.limit_up_cells.toLocaleString("ko-KR")}건, 앙상블 Top-5 선정 ${x.picks.toLocaleString("ko-KR")}건 중 미체결 후보 ${x.picks_blocked}건 (${(x.pick_blocked_rate * 100).toFixed(2)}%)`).join(" · ");
+}
+
+function m11Placebo() {
+  const g = document.getElementById("m11-pgate").value, kind = {cross_shuffle: "횡단면 셔플", time_shift: "시간 이동"};
+  const rows = m11d.placebo.filter(r => r.gate === g);
+  document.getElementById("m11-placebo").innerHTML = `<thead><tr><th class="l">모델</th><th class="l">평가</th><th class="l">검정</th><th>실제 샤프</th><th>Placebo 평균</th><th>95%</th><th>99%</th><th>z</th><th>p</th><th>n</th></tr></thead><tbody>` +
+    rows.map(r => `<tr><td class="l">${M11_NAME[r.model] || r.model}</td><td class="l">${r.protocol === "three_way" ? "3단 OOS" : "Walk-Forward"}</td><td class="l">${kind[r.kind]}</td><td><b>${num(r.actual_sharpe)}</b></td><td>${num(r.p_mean)}</td><td>${num(r.p95)}</td><td>${num(r.p99)}</td><td>${num(r.z, 1)}</td><td class="${r.p_value < 0.05 ? "pos" : "neg"}">${r.p_value < 0.001 ? "<0.001" : r.p_value.toFixed(3)}</td><td>${r.n}</td></tr>`).join("") + "</tbody>";
+}
+
+function m11Feat() {
+  const d = m11d, v = d.vif.filter(x => x.scope === "all"), fsum = d.feature_summary || {};
+  const okc = r => Math.abs(r.week10_sharpe - r.rerun_sharpe) < 0.01;
+  const rc = (d.repro_check || []).map(r => `<tr><td class="l">${r.model.toUpperCase()} 시드 ${r.seed}</td><td>${num(r.week10_sharpe, 3)}</td><td>${num(r.rerun_sharpe, 3)}</td><td class="${okc(r) ? "ok" : "fail"}">${okc(r) ? "✓ 일치" : "✗ 불일치"}</td></tr>`).join("");
+  document.getElementById("m11-feat").innerHTML =
+    `<p class="note">17개 피처(일별 횡단면 순위) · |ρ|≥0.7 쌍 ${fsum["n_abs_ge_0.7"] ?? "-"}개 · |ρ|≥0.5 쌍 ${fsum["n_abs_ge_0.5"] ?? "-"}개 · VIF>5 ${fsum.n_vif_gt5 ?? "-"}개 · VIF>10 ${fsum.n_vif_gt10 ?? "-"}개 · 최대 VIF ${num(fsum.max_vif, 2)} · 조건수 ${num(fsum.cond_number, 1)}</p>` +
+    `<table><thead><tr><th class="l">피처 (VIF 내림차순)</th><th>VIF (일별 평균 상관)</th><th>VIF (풀링)</th></tr></thead><tbody>` +
+    v.map(x => `<tr><td class="l">${esc(x.feature)}</td><td class="${x.vif_daily > 5 ? "neg" : ""}">${num(x.vif_daily)}</td><td>${num(x.vif_pooled)}</td></tr>`).join("") + "</tbody></table>" +
+    `<h3 style="font-size:14px;margin:14px 0 4px">재현 확인 — 교정 전(손실 종료) 재학습이 10주차 결과와 같은가 <span class="note">3단 분할 OOS · 게이트 없음 · K=5 샤프</span></h3>` +
+    `<table><thead><tr><th class="l">모델·시드</th><th>10주차 결과</th><th>11주차 재실행</th><th></th></tr></thead><tbody>${rc}</tbody></table>`;
+}
+
 // ---------------------------------------------------------------- WEEK 10
 const M10_ORDER = ["rule_best", "ridge", "hgb", "mlp", "gru", "overfit_mlp"];
 const M10_COLOR = {rule_best: "--base", ridge: "--s4", hgb: "--s5", mlp: "--s1", gru: "--s3", overfit_mlp: "--s2"};
@@ -689,7 +823,7 @@ function m10Loss() {
   document.getElementById("m10-loss-note").textContent = `(${n} 에폭 실행 · ◆ = Val 최소 에폭 ${h.best_epoch}${d.models.find(m => m.model === lm).hyper.early_stopping_on ? " (가중치 복원)" : " — 조기 종료 없음, 참고용"} · 손실은 y/σ_train 스케일)`;
 }
 
-show(["m1", "m2", "m3", "m7", "m8", "m10"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "m10");
+show(["m1", "m2", "m3", "m7", "m8", "m10", "m11"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "m11");
 </script>
 </body>
 </html>

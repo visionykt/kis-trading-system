@@ -6,6 +6,7 @@
 !/frontend/
 !/.env.example
 !/WEEK10_NN_REPORT.md
+!/WEEK11_AUDIT_REPORT.md
 
 # ===== 민감 정보 (어디서든 무시) =====
 .env
@@ -51,3 +52,6 @@ Thumbs.db
 .idea/
 .vscode/
 
+
+# week11 점수 행렬 캐시
+backend/cache_w11/

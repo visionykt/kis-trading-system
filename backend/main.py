@@ -259,3 +259,15 @@ def backtest_week10():
         return JSONResponse(week10_db.payload())
     except psycopg.errors.UndefinedTable:
         raise HTTPException(status_code=404, detail="w10_* 테이블이 없습니다. week10_nn.py -> week10_nn.py --curves -> week10_db.py 순서로 실행하세요.")
+
+
+@app.get("/backtest/week11")
+def backtest_week11():
+    """Week 11: 조기 종료 기준 교정(Val 손실 -> Val IC) 전/후 비교 · 5시드 GRU · Ridge+GRU 앙상블 · 비용/체결/Placebo 강건성 — DB(w11_*).
+
+    week11_train.py (ic/loss/base) -> week11_analysis.py 순서로 실행하면 채워진다."""
+    import week11_db
+    try:
+        return JSONResponse(week11_db.payload())
+    except psycopg.errors.UndefinedTable:
+        raise HTTPException(status_code=404, detail="w11_* 테이블이 없습니다. week11_train.py -> week11_analysis.py 순서로 실행하세요.")
